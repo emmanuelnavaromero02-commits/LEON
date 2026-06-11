@@ -4,6 +4,7 @@ from ..vault.vault_service import VaultService
 from .mock_provider import MockProvider
 from .openai_provider import OpenAIProvider
 from .anthropic_provider import AnthropicProvider
+from .prompt_manager import PromptManager
 import os
 
 class AIService:
@@ -40,8 +41,20 @@ class AIService:
                 "message": f"No hay suficiente contenido validado para generar esta lección sobre {skill.get('name')}."
             }
 
-        prompt = f"Learner: {learner_profile}\nSkill: {skill}\nContext: {source_content}\nMastery: {mastery}"
-        return await self.provider.generate_lesson(prompt)
+        # Fetch relevant Learning Bits
+        bits = self.db.query(models.LearningBit).filter(
+            models.LearningBit.skill_id == skill.get('id'),
+            models.LearningBit.status == "published"
+        ).all()
+
+        manager = PromptManager()
+        system_prompt = manager.get_tutor_system_prompt(learner_profile, skill, bits)
+
+        user_prompt = f"Contenido de referencia:\n{source_content}\n\nNivel de maestría actual: {mastery}"
+
+        # Here we'd call provider.generate(system_prompt, user_prompt)
+        # For simplicity, we use the existing generate_lesson which is a mock or LLM call
+        return await self.provider.generate_lesson(f"{system_prompt}\n\n{user_prompt}")
 
     async def generate_question(self, skill: dict, source_content: str, difficulty: str):
         if not source_content or len(source_content.strip()) < 50:

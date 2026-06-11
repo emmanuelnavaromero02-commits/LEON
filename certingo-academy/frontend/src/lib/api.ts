@@ -16,6 +16,12 @@ export const academyApi = {
   submitPractice: (userId: string, data: any) => api.post(`/api/academy/practice/submit/${userId}`, data),
   startExam: (userId: string) => api.post(`/api/academy/exam/start/${userId}`),
 
+  // Student Stats & Readiness
+  getReadiness: (userId: string) => api.get(`/api/academy/learning-stats/readiness/${userId}`),
+  getMissions: (userId: string) => api.get(`/api/academy/learning-stats/missions/${userId}`),
+  getNotebook: (userId: string) => api.get(`/api/academy/learning-stats/notebook/${userId}`),
+  getWeakTopics: (userId: string) => api.get(`/api/academy/learning-stats/weak-topics/${userId}`),
+
   // Admin APIs
   getSystemStatus: () => api.get('/api/admin/control-room/status'),
   getPacks: () => api.get('/api/admin/marketplace/packs'),

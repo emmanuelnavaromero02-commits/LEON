@@ -2,6 +2,10 @@
   domain_id: cloud-concepts
   name: Cloud Benefits
   level: beginner
+- id: pricing-fundamentals
+  domain_id: cloud-concepts
+  name: AWS Pricing Fundamentals
+  level: beginner
 - id: shared-responsibility
   domain_id: security-compliance
   name: Shared Responsibility Model
@@ -10,7 +14,35 @@
   domain_id: security-compliance
   name: IAM Basics
   level: beginner
-- id: compute-services
-  domain_id: technology
-  name: Compute Services (EC2, Lambda)
+- id: security-groups-nacl
+  domain_id: security-compliance
+  name: Security Groups and Network ACLs
   level: intermediate
+- id: ec2-basics
+  domain_id: technology
+  name: EC2 - Virtual Computing
+  level: beginner
+- id: s3-basics
+  domain_id: technology
+  name: S3 - Object Storage
+  level: beginner
+- id: lambda-serverless
+  domain_id: technology
+  name: Lambda and Serverless
+  level: intermediate
+- id: vpc-networking
+  domain_id: technology
+  name: VPC - Virtual Networking
+  level: intermediate
+- id: rds-databases
+  domain_id: technology
+  name: RDS - Relational Databases
+  level: beginner
+- id: cost-explorer
+  domain_id: billing-pricing
+  name: AWS Cost Explorer
+  level: beginner
+- id: budgets-alerts
+  domain_id: billing-pricing
+  name: AWS Budgets and Alerts
+  level: beginner

@@ -84,7 +84,26 @@ class PackImportService:
                 )
                 self.db.merge(skill)
 
-            # 6. Questions
+            # 6. Learning Bits
+            if os.path.exists(os.path.join(pack_path, "learning_bits.yml")):
+                with open(os.path.join(pack_path, "learning_bits.yml"), 'r') as f:
+                    bits = yaml.safe_load(f)
+                for b in bits:
+                    bit = models.LearningBit(
+                        id=b.get('id', str(uuid.uuid4())),
+                        tenant_id=tenant_id,
+                        certification_id=cert.id,
+                        skill_id=b.get('skill_id'),
+                        type=b['type'],
+                        title=b['title'],
+                        content=b['content'],
+                        difficulty=b.get('difficulty', 'beginner'),
+                        status=models.ContentStatus.PUBLISHED,
+                        created_by="system-pack"
+                    )
+                    self.db.merge(bit)
+
+            # 7. Questions
             if os.path.exists(os.path.join(pack_path, "questions.yml")):
                 with open(os.path.join(pack_path, "questions.yml"), 'r') as f:
                     questions = yaml.safe_load(f)
@@ -103,7 +122,7 @@ class PackImportService:
                     )
                     self.db.merge(question)
 
-            # 7. Knowledge Documents
+            # 8. Knowledge Documents
             kb_path = os.path.join(pack_path, "knowledge")
             if os.path.exists(kb_path):
                 kb = self.db.query(models.KnowledgeBase).filter(models.KnowledgeBase.tenant_id == tenant_id).first()

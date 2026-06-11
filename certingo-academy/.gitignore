@@ -1,26 +1,14 @@
-# Dependency directories
 node_modules/
-venv/
-.venv/
-env/
-
-# Build artifacts
 .next/
 dist/
 build/
 *.pyc
 __pycache__/
-
-# Databases
 *.db
 *.sqlite
-
-# Logs
 *.log
-
-# Environment variables
+venv/
+.venv/
 .env
 .env.local
-
-# OS files
 .DS_Store

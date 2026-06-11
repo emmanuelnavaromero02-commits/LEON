@@ -164,6 +164,26 @@ async def submit_practice(user_id: str, submission: schemas.AnswerSubmit, db: Se
 
     new_score = engine.update_user_mastery(db, user_id, DEFAULT_TENANT_ID, question.skill_id, is_correct, question.difficulty)
 
+    # Mistakes Notebook Logic
+    if not is_correct:
+        mistake = db.query(models.MistakeLog).filter(
+            models.MistakeLog.user_id == user_id,
+            models.MistakeLog.question_id == question.id
+        ).first()
+        if mistake:
+            mistake.count += 1
+        else:
+            mistake = models.MistakeLog(
+                id=str(uuid.uuid4()),
+                tenant_id=DEFAULT_TENANT_ID,
+                user_id=user_id,
+                question_id=question.id,
+                skill_id=question.skill_id,
+                count=1
+            )
+            db.add(mistake)
+        db.commit()
+
     # Feedback
     ai_service = AIService(db, DEFAULT_TENANT_ID)
     feedback = await ai_service.provider.generate_feedback({}, question.__dict__, submission.selected_answer, is_correct)
