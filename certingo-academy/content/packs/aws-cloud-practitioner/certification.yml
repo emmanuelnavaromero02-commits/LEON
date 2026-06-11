@@ -1,0 +1,7 @@
+id: aws-cloud-practitioner
+name: AWS Cloud Practitioner
+provider: AWS
+version: "2024.1"
+description: >
+  The AWS Certified Cloud Practitioner validates overall understanding of the AWS Cloud platform,
+  covering basic cloud concepts and security.

@@ -1,0 +1,12 @@
+- id: cloud-concepts
+  name: Cloud Concepts
+  weight: 24
+- id: security-compliance
+  name: Security and Compliance
+  weight: 30
+- id: technology
+  name: Technology
+  weight: 34
+- id: billing-pricing
+  name: Billing and Pricing
+  weight: 12

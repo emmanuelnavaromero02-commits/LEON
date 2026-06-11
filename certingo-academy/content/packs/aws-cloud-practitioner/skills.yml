@@ -1,0 +1,16 @@
+- id: cloud-benefits
+  domain_id: cloud-concepts
+  name: Cloud Benefits
+  level: beginner
+- id: shared-responsibility
+  domain_id: security-compliance
+  name: Shared Responsibility Model
+  level: beginner
+- id: iam-basics
+  domain_id: security-compliance
+  name: IAM Basics
+  level: beginner
+- id: compute-services
+  domain_id: technology
+  name: Compute Services (EC2, Lambda)
+  level: intermediate

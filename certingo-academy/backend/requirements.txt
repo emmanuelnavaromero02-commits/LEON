@@ -11,3 +11,6 @@ pyyaml
 requests
 httpx
 pytest
+cryptography
+python-dotenv
+email-validator

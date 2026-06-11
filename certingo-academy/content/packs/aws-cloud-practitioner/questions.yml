@@ -1,0 +1,31 @@
+- skill_id: shared-responsibility
+  prompt: "According to the Shared Responsibility Model, who is responsible for the security of the cloud (infrastructure)?"
+  options: ["AWS", "The Customer", "Both", "The ISP"]
+  correct_answer: "AWS"
+  difficulty: "easy"
+  explanation: "AWS manages the global infrastructure, while customers manage data and configurations."
+  status: "published"
+
+- skill_id: iam-basics
+  prompt: "Which IAM entity allows you to assign temporary permissions to a service or user?"
+  options: ["IAM User", "IAM Group", "IAM Role", "IAM Policy"]
+  correct_answer: "IAM Role"
+  difficulty: "medium"
+  explanation: "IAM Roles are used for temporary delegation of permissions."
+  status: "published"
+
+- skill_id: cloud-benefits
+  prompt: "What is a major benefit of cloud computing?"
+  options: ["High latency", "Trade capital expense for variable expense", "Manual provisioning", "Increased complexity"]
+  correct_answer: "Trade capital expense for variable expense"
+  difficulty: "easy"
+  explanation: "Cloud computing allows you to pay for only what you use."
+  status: "published"
+
+- skill_id: compute-services
+  prompt: "Which AWS service provides resizable compute capacity in the cloud?"
+  options: ["S3", "EC2", "RDS", "VPC"]
+  correct_answer: "EC2"
+  difficulty: "medium"
+  explanation: "Amazon Elastic Compute Cloud (EC2) provides virtual servers in the cloud."
+  status: "published"
