@@ -1,0 +1,47 @@
+- skill_id: cloud-benefits
+  prompt: "Which of the following represents the concept of 'Agility' in cloud computing?"
+  options: ["The ability to scale resources up", "Reducing the time to provision new resources from weeks to minutes", "Paying only for what you use", "Distributing traffic across multiple instances"]
+  correct_answer: "Reducing the time to provision new resources from weeks to minutes"
+  difficulty: "medium"
+  explanation: "Agility refers to the speed at which you can respond to changes and innovate."
+  status: "published"
+
+- skill_id: shared-responsibility
+  prompt: "In the Shared Responsibility Model, which task is the sole responsibility of the customer?"
+  options: ["Physical security of data centers", "Patching the underlying virtualization layer", "Managing AWS Identity and Access Management (IAM)", "Maintaining server hardware"]
+  correct_answer: "Managing AWS Identity and Access Management (IAM)"
+  difficulty: "medium"
+  explanation: "Customers are responsible for security 'in' the cloud, including user management and access."
+  status: "published"
+
+- skill_id: s3-basics
+  prompt: "What is the maximum size of a single object that can be stored in Amazon S3?"
+  options: ["5 GB", "5 TB", "Unlimited", "100 GB"]
+  correct_answer: "5 TB"
+  difficulty: "hard"
+  explanation: "While total storage is unlimited, a single object has a 5 TB limit."
+  status: "published"
+
+- skill_id: security-groups-nacl
+  prompt: "A developer wants to block a specific malicious IP address from entering their VPC. Which tool should be used?"
+  options: ["Security Group", "Network ACL", "IAM Policy", "Route Table"]
+  correct_answer: "Network ACL"
+  difficulty: "hard"
+  explanation: "Network ACLs support 'Deny' rules for specific IPs, whereas Security Groups only support 'Allow' rules."
+  status: "published"
+
+- skill_id: cost-explorer
+  prompt: "Which AWS tool provides highly granular visualizations of cost and usage patterns over the last 12 months?"
+  options: ["AWS Budgets", "AWS Cost Explorer", "AWS Trusted Advisor", "Cost & Usage Report"]
+  correct_answer: "AWS Cost Explorer"
+  difficulty: "easy"
+  explanation: "Cost Explorer is the primary tool for visualization and analysis of historical costs."
+  status: "published"
+
+- skill_id: lambda-serverless
+  prompt: "Which of the following is a characteristic of serverless computing with AWS Lambda?"
+  options: ["You must manage the underlying operating system", "You pay only for the compute time you consume", "It is designed for long-running processes up to 24 hours", "You must provision instances before deploying code"]
+  correct_answer: "You pay only for the compute time you consume"
+  difficulty: "medium"
+  explanation: "Lambda is event-driven and you are billed only for requests and execution duration."
+  status: "published"

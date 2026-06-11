@@ -1,0 +1,17 @@
+id: aws-cloud-practitioner
+name: AWS Cloud Practitioner
+provider: AWS
+version: "2024.1"
+certification_id: aws-cloud-practitioner
+description: Foundational AWS cloud knowledge.
+manifest_version: "1.0"
+includes:
+  - certification
+  - domains
+  - skills
+  - lessons
+  - questions
+  - knowledge
+  - prompts
+  - learning_bits
+  - policies

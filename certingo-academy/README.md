@@ -1,43 +1,31 @@
 # Certingo Academy
 
-Certingo is an AI-powered adaptive learning platform for professional certifications.
+Certingo Academy is a multi-tenant, AI-first adaptive learning platform for technical certifications.
 
-## Demo Vision
-This demo showcases a multi-tenant, AI-first architecture with a modern SaaS aesthetic (Linear/Vercel style). It features a "Duolingo-like" adaptive engine but for professional technical certifications.
+## Features
+- **Certification Packs**: Installable YAML-based certification roadmaps.
+- **Adaptive Engine**: Real-time mastery calculation and balanced diagnostic tests.
+- **Enterprise Console**: Operational dashboard for content quality, audit logs, and MCP tool management.
+- **Secure Vault**: Encrypted storage for AI provider API keys.
+- **RAG-Ready**: Controlled generation using verified knowledge fragments and Learning Bits.
 
-## Project Structure
-- `backend/`: FastAPI + SQLAlchemy + SQLite. Multi-tenant ready.
-- `frontend/`: Next.js + Tailwind + Framer Motion.
-- `content/`: Source knowledge and certification metadata.
+## Quick Start
+\`\`\`bash
+make setup
+make seed
+make dev
+\`\`\`
 
-## How to Run
+Import the demo AWS pack:
+\`\`\`bash
+curl -X POST http://localhost:8000/api/admin/marketplace/packs/import -H "Content-Type: application/json" -d '{"pack_id": "aws-cloud-practitioner"}'
+\`\`\`
 
-### 1. Backend
-```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate # Or your platform equivalent
-pip install -r requirements.txt
-python3 -m app.database.seed
-uvicorn main:app --reload
-```
+## Users
+- Admin Console: http://localhost:3000/admin/control-room
+- Student Dashboard: http://localhost:3000/dashboard (Log in via onboarding)
 
-### 2. Frontend
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-### 3. Usage
-- Go to `http://localhost:3000`
-- Click "Start Demo"
-- Complete Onboarding
-- Explore the Dashboard, Lessons, and Exam Simulator
-- Visit `http://localhost:3000/admin` to see the question review queue
-
-## Multi-tenant Architecture
-Every entity in the database is linked to a `tenant_id`. The current demo uses `default-demo-tenant`.
-
-## AI Integration
-The demo uses a `MockProvider` by default. The architecture is ready to switch to OpenAI, Anthropic, or MCP by updating `TenantAISettings` and providing API keys in `.env`.
+## Tech Stack
+- Backend: FastAPI, SQLAlchemy, Alembic, SQLite.
+- Frontend: Next.js 15, TypeScript, Tailwind CSS, Framer Motion.
+- Security: cryptography.Fernet (AES-256).

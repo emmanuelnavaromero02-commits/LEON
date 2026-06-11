@@ -1,0 +1,70 @@
+- id: analogy-rented-apartment
+  skill_id: shared-responsibility
+  type: analogy
+  title: "Shared Responsibility: Rented Apartment"
+  content: >
+    AWS is like the building owner: they care for the structural integrity, elevators, and main lobby security.
+    You are the tenant: you decide who comes into your room, what you keep inside, and if you lock your own door.
+  difficulty: easy
+
+- id: trap-iam-user-vs-root
+  skill_id: iam-basics
+  type: exam_trap
+  title: "Root Account vs IAM User"
+  content: >
+    Trap: AWS recommends using the Root account for daily administration.
+    Correction: Never use Root for daily tasks. Create IAM users with least privilege instead.
+  difficulty: medium
+
+- id: mist-s3-is-file-system
+  skill_id: s3-basics
+  type: common_mistake
+  title: "S3 is not a standard file system"
+  content: >
+    Mistake: Thinking S3 works exactly like your computer's hard drive (block storage).
+    Reality: S3 is Object Storage. You cannot 'edit' a file directly; you must re-upload the entire object.
+  difficulty: easy
+
+- id: concept-least-privilege
+  skill_id: iam-basics
+  type: concept
+  title: "Principle of Least Privilege"
+  content: >
+    Only grant the permissions required to perform a specific task, and no more.
+  difficulty: beginner
+
+- id: comp-sg-vs-nacl
+  skill_id: security-groups-nacl
+  type: comparison
+  title: "Security Groups vs Network ACLs"
+  content: >
+    Security Groups (SG) are stateful and work at the Instance level.
+    Network ACLs (NACL) are stateless and work at the Subnet level.
+  difficulty: intermediate
+
+- id: trap-lambda-timeout
+  skill_id: lambda-serverless
+  type: exam_trap
+  title: "Lambda Max Duration"
+  content: >
+    Trap: Lambda is good for long-running batch processes (hours).
+    Correction: Lambda has a maximum execution time of 15 minutes. Use EC2 for longer tasks.
+  difficulty: intermediate
+
+- id: analogy-valet-parking
+  skill_id: ec2-basics
+  type: analogy
+  title: "On-Demand vs Reserved Instances"
+  content: >
+    On-Demand is like a Hotel: pay per night, high flexibility, high price.
+    Reserved is like an Apartment Lease: commit to 1-3 years, lower price, low flexibility.
+  difficulty: beginner
+
+- id: business-cost-explorer
+  skill_id: cost-explorer
+  type: example
+  title: "Business Use Case: Identifying Leakage"
+  content: >
+    A startup noticed a 30% spike in costs. Using Cost Explorer, they filtered by 'Service'
+    and found unattached EBS volumes were charging them.
+  difficulty: medium

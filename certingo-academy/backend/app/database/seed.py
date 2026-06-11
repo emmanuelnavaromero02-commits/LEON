@@ -1,119 +1,49 @@
-from sqlalchemy.orm import Session
-from .db import SessionLocal, engine
-from . import models
+from .db import SessionLocal
+from .models import Tenant, User, UserRole, LearnerProfile, TenantAISettings
 import uuid
 
 def seed():
-    # Create tables
-    models.Base.metadata.create_all(bind=engine)
-
     db = SessionLocal()
-
-    # Create Tenant
     tenant_id = "default-demo-tenant"
-    tenant = db.query(models.Tenant).filter(models.Tenant.id == tenant_id).first()
+
+    # 1. Tenant
+    tenant = db.query(Tenant).filter(Tenant.id == tenant_id).first()
     if not tenant:
-        tenant = models.Tenant(id=tenant_id, name="Certingo Demo", slug="demo")
+        tenant = Tenant(id=tenant_id, name="Certingo Demo", slug="demo")
         db.add(tenant)
         db.flush()
 
-        branding = models.TenantBranding(
-            tenant_id=tenant_id,
-            company_name="Certingo Academy",
-            primary_color="#000000",
-            secondary_color="#6366f1",
-            theme="light"
-        )
-        db.add(branding)
-
-        ai_settings = models.TenantAISettings(tenant_id=tenant_id, provider="mock")
+        ai_settings = TenantAISettings(tenant_id=tenant_id, provider="mock")
         db.add(ai_settings)
 
-    # Create Certification
-    cert_id = "aws-cloud-practitioner"
-    cert = db.query(models.Certification).filter(models.Certification.id == cert_id).first()
-    if not cert:
-        cert = models.Certification(
-            id=cert_id,
-            tenant_id=tenant_id,
-            name="AWS Cloud Practitioner",
-            provider="AWS",
-            version="CLF-C02",
-            description="Foundational AWS certification"
-        )
-        db.add(cert)
-        db.flush()
+    # 2. Users
+    users = [
+        ("superadmin@certingo.demo", "Super Admin", UserRole.SUPER_ADMIN),
+        ("admin@certingo.demo", "Tenant Admin", UserRole.TENANT_ADMIN),
+        ("student@certingo.demo", "Jane Student", UserRole.STUDENT),
+    ]
 
-        # Domains
-        domains = [
-            ("cloud-concepts", "Cloud Concepts", 0.24),
-            ("security", "Security and Compliance", 0.30),
-            ("technology", "Cloud Technology and Services", 0.34),
-            ("billing", "Billing, Pricing, and Support", 0.12)
-        ]
-
-        for d_id, d_name, d_weight in domains:
-            domain = models.Domain(
-                id=d_id,
-                certification_id=cert_id,
-                tenant_id=tenant_id,
-                name=d_name,
-                weight=d_weight
-            )
-            db.add(domain)
-            db.flush()
-
-            # Skills for Security Domain
-            if d_id == "security":
-                skills = [
-                    ("shared-responsibility", "Shared Responsibility Model", "beginner"),
-                    ("iam-basics", "IAM Basics", "beginner"),
-                    ("compliance", "AWS Compliance", "intermediate")
-                ]
-                for s_id, s_name, s_level in skills:
-                    skill = models.Skill(
-                        id=s_id,
-                        domain_id=d_id,
-                        tenant_id=tenant_id,
-                        name=s_name,
-                        level=s_level
-                    )
-                    db.add(skill)
-                    db.flush()
-
-                    # Knowledge Doc
-                    kb = models.KnowledgeBase(id=f"kb-{s_id}", tenant_id=tenant_id, name=f"{s_name} KB")
-                    db.add(kb)
-                    db.flush()
-
-                    doc = models.KnowledgeDocument(
-                        id=str(uuid.uuid4()),
-                        tenant_id=tenant_id,
-                        kb_id=kb.id,
-                        title=f"Official Guide: {s_name}",
-                        content=f"This is the official knowledge content for {s_name}. It covers the core principles and best practices.",
-                        metadata_json={"related_skills": [s_id]},
-                        version="1.0"
-                    )
-                    db.add(doc)
-
-                    # Questions
-                    for i in range(5):
-                        q = models.Question(
-                            id=str(uuid.uuid4()),
-                            skill_id=s_id,
-                            tenant_id=tenant_id,
-                            prompt=f"Sample question {i} for {s_name}?",
-                            options=["Option A", "Option B", "Option C", "Option D"],
-                            correct_answer="Option A",
-                            explanation="This is the correct answer because of cloud principles.",
-                            difficulty="medium" if i % 2 == 0 else "easy",
-                            status="approved"
-                        )
-                        db.add(q)
+    for email, name, role in users:
+        u = db.query(User).filter(User.email == email).first()
+        if not u:
+            u_id = str(uuid.uuid4())
+            u = User(id=u_id, tenant_id=tenant_id, email=email, full_name=name, role=role)
+            db.add(u)
+            if role == UserRole.STUDENT:
+                profile = LearnerProfile(
+                    id=str(uuid.uuid4()),
+                    user_id=u_id,
+                    tenant_id=tenant_id,
+                    background="non-technical",
+                    preferred_style="simple-analogies",
+                    weekly_time_minutes=120,
+                    confidence_level=0.6
+                )
+                db.add(profile)
 
     db.commit()
-    print("Database seeded successfully!")
+    print("Base seed completed.")
+    db.close()
 
 if __name__ == "__main__":
     seed()
