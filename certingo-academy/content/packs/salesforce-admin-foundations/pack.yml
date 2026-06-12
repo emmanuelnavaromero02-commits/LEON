@@ -1,0 +1,8 @@
+id: salesforce-admin-foundations
+name: Salesforce Administrator Foundations
+provider: Salesforce
+version: "2024"
+certification_id: salesforce-admin-foundations
+description: Core skills for Salesforce administrators.
+manifest_version: "1.0"
+includes: [certification, domains, skills, questions, learning_bits, knowledge, prompts]

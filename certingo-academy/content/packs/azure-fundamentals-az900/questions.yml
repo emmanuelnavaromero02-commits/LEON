@@ -1,0 +1,15 @@
+- skill_id: az-resource-groups
+  prompt: "Which Azure feature allows you to group related resources together for simplified management?"
+  options: ["Availability Sets", "Resource Groups", "Virtual Networks", "Management Groups"]
+  correct_answer: "Resource Groups"
+  difficulty: "easy"
+  explanation: "Resource Groups are containers that hold related resources for an Azure solution."
+  status: "published"
+
+- skill_id: az-availability-zones
+  prompt: "How many availability zones are typically present in an Azure region that supports them?"
+  options: ["One", "At least three", "Ten", "Six"]
+  correct_answer: "At least three"
+  difficulty: "medium"
+  explanation: "Regions with Availability Zones have a minimum of three separate zones to ensure high availability."
+  status: "published"

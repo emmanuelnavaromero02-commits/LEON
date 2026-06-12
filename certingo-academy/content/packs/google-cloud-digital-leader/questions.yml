@@ -1,0 +1,15 @@
+- skill_id: gcp-bigquery
+  prompt: "Which Google Cloud service is a serverless, highly scalable data warehouse designed for business agility?"
+  options: ["Cloud SQL", "Cloud Spanner", "BigQuery", "Cloud Bigtable"]
+  correct_answer: "BigQuery"
+  difficulty: "easy"
+  explanation: "BigQuery is Google Cloud's data warehouse for analytics."
+  status: "published"
+
+- skill_id: gcp-finops
+  prompt: "Which tool should a digital leader use to estimate the cost of moving an existing workload to Google Cloud?"
+  options: ["Google Cloud Pricing Calculator", "Billing Export", "Quotas", "Resource Hierarchy"]
+  correct_answer: "Google Cloud Pricing Calculator"
+  difficulty: "easy"
+  explanation: "The Pricing Calculator provides estimates based on resource usage."
+  status: "published"

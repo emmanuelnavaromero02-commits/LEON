@@ -1,0 +1,15 @@
+- id: bit-gcp-bq
+  skill_id: gcp-bigquery
+  type: concept
+  title: "BigQuery"
+  content: "Google Cloud's fully managed, petabyte-scale data warehouse."
+- id: bit-gcp-ce
+  skill_id: gcp-compute-engine
+  type: analogy
+  title: "Compute Engine: Virtual Hardware"
+  content: "Compute Engine is like renting a computer in Google's basement that you access via the internet."
+- id: bit-gcp-storage
+  skill_id: gcp-cloud-storage
+  type: best_practice
+  title: "Choosing Storage Classes"
+  content: "Use Standard for hot data, and Coldline or Archive for long-term backups to save costs."

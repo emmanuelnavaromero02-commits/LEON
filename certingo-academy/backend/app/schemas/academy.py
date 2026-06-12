@@ -1,45 +1,35 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, validator
 from typing import List, Optional, Dict
 from datetime import datetime
 
-class TenantBase(BaseModel):
-    name: str
-    slug: str
-
-class UserBase(BaseModel):
-    email: EmailStr
-    full_name: str
-    role: str
-
 class OnboardingRequest(BaseModel):
-    full_name: str
+    full_name: str = Field(..., min_length=2, max_length=100)
     email: EmailStr
     target_certification_id: str
     background: str
     preferred_style: str
-    weekly_time_minutes: int
-    confidence_level: float
+    weekly_time_minutes: int = Field(..., ge=30, le=3000)
+    confidence_level: float = Field(0.5, ge=0.0, le=1.0)
 
-class LessonResponse(BaseModel):
-    title: str
-    objective: str
-    analogy: str
-    simple_explanation: str
-    example: str
-    question: Dict
-    next_recommendation: str
-
-class QuestionResponse(BaseModel):
-    id: str
-    prompt: str
-    options: List[str]
-    difficulty: str
+    @validator('target_certification_id')
+    def validate_cert_id(cls, v):
+        if not v: raise ValueError("Certification ID cannot be empty")
+        return v
 
 class AnswerSubmit(BaseModel):
     question_id: str
     selected_answer: str
+    skill_id: Optional[str] = None
+    time_taken_seconds: Optional[int] = None
 
-class ExamResult(BaseModel):
-    score: float
-    domain_scores: Dict[str, float]
-    recommendations: List[str]
+class PackImportRequest(BaseModel):
+    pack_id: str
+
+class SecretCreate(BaseModel):
+    key_name: str = Field(..., regex="^[A-Z0-9_]+$")
+    value: str
+
+class AITestRequest(BaseModel):
+    prompt: str
+    skill_id: str
+    student_profile: Dict

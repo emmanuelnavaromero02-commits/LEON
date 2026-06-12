@@ -1,0 +1,8 @@
+id: azure-fundamentals-az900
+name: Azure Fundamentals (AZ-900)
+provider: Microsoft
+version: "2024.2"
+certification_id: azure-fundamentals-az900
+description: Basic concepts of cloud services with Microsoft Azure.
+manifest_version: "1.0"
+includes: [certification, domains, skills, questions, learning_bits, knowledge, prompts]

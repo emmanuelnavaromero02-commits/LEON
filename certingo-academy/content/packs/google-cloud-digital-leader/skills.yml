@@ -1,0 +1,32 @@
+- id: gcp-compute-engine
+  domain_id: gcp-infrastructure
+  name: Compute Engine
+  level: beginner
+- id: gcp-cloud-storage
+  domain_id: gcp-infrastructure
+  name: Cloud Storage
+  level: beginner
+- id: gcp-bigquery
+  domain_id: gcp-data-ai
+  name: BigQuery Data Warehouse
+  level: intermediate
+- id: gcp-cloud-functions
+  domain_id: gcp-infrastructure
+  name: Cloud Functions (Serverless)
+  level: beginner
+- id: gcp-security-model
+  domain_id: gcp-infrastructure
+  name: Google Cloud Shared Responsibility
+  level: beginner
+- id: gcp-finops
+  domain_id: gcp-digital-transformation
+  name: Cloud Financial Operations
+  level: beginner
+- id: gcp-ai-ml
+  domain_id: gcp-data-ai
+  name: Vertex AI and ML Fundamentals
+  level: intermediate
+- id: gcp-anthos
+  domain_id: gcp-infrastructure
+  name: Anthos Hybrid Cloud
+  level: intermediate

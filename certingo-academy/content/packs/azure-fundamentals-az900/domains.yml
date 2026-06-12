@@ -1,0 +1,9 @@
+- id: az-cloud-concepts
+  name: Cloud Concepts
+  weight: 25
+- id: az-architecture
+  name: Azure Architecture and Services
+  weight: 40
+- id: az-management
+  name: Azure Management and Governance
+  weight: 35

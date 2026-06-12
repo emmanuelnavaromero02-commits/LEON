@@ -1,0 +1,8 @@
+id: sap-successfactors-foundations
+name: SAP SuccessFactors Foundations
+provider: SAP
+version: "2024"
+certification_id: sap-successfactors-foundations
+description: Core concepts of SAP SuccessFactors HXM suite.
+manifest_version: "1.0"
+includes: [certification, domains, skills, questions, learning_bits, knowledge, prompts]

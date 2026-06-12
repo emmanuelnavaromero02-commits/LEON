@@ -1,0 +1,15 @@
+- skill_id: sf-profiles-roles
+  prompt: "Which Salesforce feature controls a user's object-level permissions, such as the ability to Create or Delete records?"
+  options: ["Role", "Profile", "Sharing Rule", "Public Group"]
+  correct_answer: "Profile"
+  difficulty: "easy"
+  explanation: "Profiles define object-level permissions and system settings."
+  status: "published"
+
+- skill_id: sf-data-import
+  prompt: "Which tool should be used to import up to 5,000,000 records into Salesforce?"
+  options: ["Data Import Wizard", "Data Loader", "Report Export", "Workbench"]
+  correct_answer: "Data Loader"
+  difficulty: "medium"
+  explanation: "Data Loader is used for large imports (up to 5M records), whereas Data Import Wizard is limited to 50k."
+  status: "published"

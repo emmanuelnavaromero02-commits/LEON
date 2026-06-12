@@ -1,0 +1,20 @@
+- id: bit-az-vm
+  skill_id: az-virtual-machines
+  type: concept
+  title: "Azure Virtual Machines"
+  content: "On-demand, scalable computing resources in Azure."
+- id: bit-az-rg
+  skill_id: az-resource-groups
+  type: analogy
+  title: "Resource Groups: Folders"
+  content: "A Resource Group is like a folder on your computer. It groups related items together so you can manage them as a single unit."
+- id: bit-az-rbac
+  skill_id: az-rbac
+  type: concept
+  title: "Azure RBAC"
+  content: "Fine-grained access management for Azure resources."
+- id: bit-az-entraid
+  skill_id: az-active-directory
+  type: comparison
+  title: "Entra ID vs On-Premises AD"
+  content: "Entra ID (formerly Azure AD) is a cloud identity service, while on-premises AD is for local network management."

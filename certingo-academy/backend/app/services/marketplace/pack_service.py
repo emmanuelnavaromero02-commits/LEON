@@ -30,15 +30,24 @@ class PackImportService:
             self.db.add(pack)
 
         # 2. Track Installation
-        installation = models.TenantCertificationInstallation(
-            id=str(uuid.uuid4()),
-            tenant_id=tenant_id,
-            certification_id=pack_config.get('certification_id', pack_id),
-            pack_id=pack_id,
-            status=models.CertificationStatus.INSTALLING,
-            installed_by=user_id
-        )
-        self.db.add(installation)
+        installation = self.db.query(models.TenantCertificationInstallation).filter(
+            models.TenantCertificationInstallation.tenant_id == tenant_id,
+            models.TenantCertificationInstallation.pack_id == pack_id
+        ).first()
+
+        if not installation:
+            installation = models.TenantCertificationInstallation(
+                id=str(uuid.uuid4()),
+                tenant_id=tenant_id,
+                certification_id=pack_config.get('certification_id', pack_id),
+                pack_id=pack_id,
+                status=models.CertificationStatus.INSTALLING,
+                installed_by=user_id
+            )
+            self.db.add(installation)
+        else:
+            installation.status = models.CertificationStatus.INSTALLING
+
         self.db.commit()
 
         try:
@@ -140,6 +149,7 @@ class PackImportService:
                             id=str(uuid.uuid4()),
                             tenant_id=tenant_id,
                             kb_id=kb.id,
+                            certification_id=cert.id,
                             title=filename.replace(".md", ""),
                             source_type="markdown",
                             content=content,
@@ -151,13 +161,10 @@ class PackImportService:
 
             installation.status = models.CertificationStatus.READY
             self.db.commit()
-
             self.audit.log(self.db, tenant_id, user_id, "pack_installed", "CertificationPack", pack_id, "success")
-
         except Exception as e:
             self.db.rollback()
             installation.status = models.CertificationStatus.FAILED
             installation.error_message = str(e)
             self.db.commit()
-            self.audit.log(self.db, tenant_id, user_id, "pack_installed", "CertificationPack", pack_id, "failure", {"error": str(e)})
             raise e

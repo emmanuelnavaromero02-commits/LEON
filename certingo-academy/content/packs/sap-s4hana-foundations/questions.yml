@@ -1,0 +1,15 @@
+- skill_id: s4-hana-db
+  prompt: "Which technology is at the core of SAP S/4HANA, allowing it to process massive amounts of data in real-time?"
+  options: ["In-memory computing", "Disk-based indexing", "Blockchain", "Legacy relational DB"]
+  correct_answer: "In-memory computing"
+  difficulty: "easy"
+  explanation: "SAP HANA uses in-memory computing to deliver high performance."
+  status: "published"
+
+- skill_id: s4-fiori-launchpad
+  prompt: "What is the entry point for users to access SAP S/4HANA apps on various devices?"
+  options: ["SAP GUI", "SAP Web GUI", "SAP Fiori Launchpad", "Windows Terminal"]
+  correct_answer: "SAP Fiori Launchpad"
+  difficulty: "easy"
+  explanation: "SAP Fiori Launchpad is the central, role-based entry point for all SAP Fiori apps."
+  status: "published"

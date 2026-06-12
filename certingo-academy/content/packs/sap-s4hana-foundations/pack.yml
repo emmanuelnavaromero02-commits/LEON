@@ -1,0 +1,8 @@
+id: sap-s4hana-foundations
+name: SAP S/4HANA Foundations
+provider: SAP
+version: "2023"
+certification_id: sap-s4hana-foundations
+description: Fundamentals of SAP S/4HANA ERP.
+manifest_version: "1.0"
+includes: [certification, domains, skills, questions, learning_bits, knowledge, prompts]

@@ -1,0 +1,9 @@
+- id: gcp-digital-transformation
+  name: Digital Transformation with Google Cloud
+  weight: 30
+- id: gcp-infrastructure
+  name: Innovating with Google Cloud Infrastructure
+  weight: 40
+- id: gcp-data-ai
+  name: Innovating with Google Cloud Data and AI
+  weight: 30

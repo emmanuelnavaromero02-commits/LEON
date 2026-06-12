@@ -1,0 +1,5 @@
+id: azure-fundamentals-az900
+name: Azure Fundamentals (AZ-900)
+provider: Microsoft
+version: "2024.2"
+description: Foundational knowledge of cloud services and how those services are provided with Microsoft Azure.

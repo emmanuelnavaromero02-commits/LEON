@@ -1,0 +1,15 @@
+- id: bit-sf-profiles
+  skill_id: sf-profiles-roles
+  type: concept
+  title: "Profiles"
+  content: "Define what a user can DO in the system (permissions)."
+- id: bit-sf-roles
+  skill_id: sf-profiles-roles
+  type: analogy
+  title: "Roles: Organization Chart"
+  content: "Roles are like an org chart. They define what a user can SEE (data visibility) based on their position."
+- id: bit-sf-validation
+  skill_id: sf-validation-rules
+  type: exam_trap
+  title: "Validation Rules: Existing Data"
+  content: "Trap: Validation rules run on existing data. Reality: They only run when a record is saved or created."

@@ -1,0 +1,32 @@
+- id: s4-fiori-launchpad
+  domain_id: s4-ux-fiori
+  name: SAP Fiori Launchpad
+  level: beginner
+- id: s4-hana-db
+  domain_id: s4-architecture
+  name: SAP HANA Database (In-Memory)
+  level: intermediate
+- id: s4-deployment-cloud
+  domain_id: s4-architecture
+  name: Public vs Private Cloud Deployment
+  level: intermediate
+- id: s4-procure-to-pay
+  domain_id: s4-business-processes
+  name: Procure to Pay Process
+  level: beginner
+- id: s4-order-to-cash
+  domain_id: s4-business-processes
+  name: Order to Cash Process
+  level: beginner
+- id: s4-universal-journal
+  domain_id: s4-architecture
+  name: Universal Journal (ACDOCA)
+  level: advanced
+- id: s4-intelligent-erp
+  domain_id: s4-business-processes
+  name: Intelligent Enterprise Features
+  level: beginner
+- id: s4-central-finance
+  domain_id: s4-architecture
+  name: Central Finance Basics
+  level: intermediate

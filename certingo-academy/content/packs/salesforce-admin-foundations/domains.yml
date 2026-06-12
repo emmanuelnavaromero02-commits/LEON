@@ -1,0 +1,9 @@
+- id: sf-config-setup
+  name: Configuration and Setup
+  weight: 20
+- id: sf-object-manager
+  name: Object Manager and Lightning App Builder
+  weight: 35
+- id: sf-data-analytics
+  name: Data and Analytics Management
+  weight: 45

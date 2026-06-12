@@ -1,0 +1,15 @@
+- id: bit-s4-hana
+  skill_id: s4-hana-db
+  type: concept
+  title: "SAP HANA"
+  content: "SAP's in-memory database that enables real-time data processing."
+- id: bit-s4-fiori
+  skill_id: s4-fiori-launchpad
+  type: analogy
+  title: "Fiori Launchpad: Smartphone Home"
+  content: "The Fiori Launchpad is like the home screen of your smartphone, with tiles representing different apps/tasks."
+- id: bit-s4-acdoca
+  skill_id: s4-universal-journal
+  type: tech_explanation
+  title: "The Universal Journal"
+  content: "ACDOCA table combines financial accounting and controlling into a single source of truth."

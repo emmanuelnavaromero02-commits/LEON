@@ -1,0 +1,32 @@
+- id: sf-user-management
+  domain_id: sf-config-setup
+  name: User Management
+  level: beginner
+- id: sf-profiles-roles
+  domain_id: sf-config-setup
+  name: Profiles and Roles
+  level: intermediate
+- id: sf-standard-objects
+  domain_id: sf-object-manager
+  name: Standard vs Custom Objects
+  level: beginner
+- id: sf-field-types
+  domain_id: sf-object-manager
+  name: Custom Field Types
+  level: beginner
+- id: sf-data-import
+  domain_id: sf-data-analytics
+  name: Data Import Wizard vs Data Loader
+  level: intermediate
+- id: sf-reports-dashboards
+  domain_id: sf-data-analytics
+  name: Reports and Dashboards
+  level: beginner
+- id: sf-validation-rules
+  domain_id: sf-object-manager
+  name: Validation Rules
+  level: intermediate
+- id: sf-sharing-settings
+  domain_id: sf-config-setup
+  name: Organization-Wide Defaults (OWD)
+  level: advanced

@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, ArrowRight, Lightbulb, Sparkles, AlertCircle, Info, TriangleAlert, BrainCircuit } from 'lucide-react';
 import { academyApi } from '@/lib/api';
 
-export default function LearnPage() {
+function LearnContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const certId = searchParams.get('cert_id');
   const [lesson, setLesson] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -20,13 +22,13 @@ export default function LearnPage() {
 
     const fetchLesson = async () => {
       try {
-        const res = await academyApi.getNextLesson(id);
+        const res = await academyApi.getNextLesson(id, certId || '');
         setLesson(res.data);
       } catch (err) { console.error(err); }
       finally { setLoading(false); }
     };
     fetchLesson();
-  }, []);
+  }, [certId, router]);
 
   const handleSubmit = async () => {
     if (!selectedOption) return;
@@ -37,7 +39,7 @@ export default function LearnPage() {
     const id = localStorage.getItem('certingo_user_id');
     if (id) {
       await academyApi.submitLesson(id, {
-        question_id: 'lesson-q',
+        question_id: lesson.question.id || 'lesson-q',
         selected_answer: selectedOption,
         skill_id: lesson.skill_id
       });
@@ -46,17 +48,25 @@ export default function LearnPage() {
 
   if (loading || !lesson) return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        className="w-8 h-8 border-t-2 border-indigo-500 rounded-full"
+      />
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex flex-col">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen bg-[#050505] text-white flex flex-col"
+    >
       <header className="flex items-center justify-between px-8 py-6 border-b border-white/5 sticky top-0 bg-[#050505]/80 backdrop-blur-xl z-20">
         <button onClick={() => router.push('/dashboard')} className="p-2 hover:bg-white/5 rounded-full transition-colors">
           <X className="w-6 h-6 text-white/40" />
         </button>
-        <div className="flex items-center space-x-2 bg-indigo-500/10 px-4 py-2 rounded-full border border-indigo-500/20">
+        <div className="flex items-center space-x-2 bg-indigo-500/10 px-4 py-2 rounded-full border border-indigo-500/20 shadow-lg shadow-indigo-500/5">
           <Sparkles className="w-4 h-4 text-indigo-400" />
           <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">AI Tutor Active</span>
         </div>
@@ -67,7 +77,7 @@ export default function LearnPage() {
         <div className="max-w-3xl mx-auto px-8 py-16">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em] mb-4 block">Personalized Lesson</span>
-            <h1 className="text-5xl font-bold mb-12 tracking-tight leading-tight">{lesson.title}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-12 tracking-tight leading-tight">{lesson.title}</h1>
 
             <div className="space-y-10">
               {lesson.analogy && (
@@ -92,7 +102,7 @@ export default function LearnPage() {
                 </h3>
                 <p className="text-xl text-white/60 leading-relaxed">{lesson.simple_explanation}</p>
 
-                <div className="grid grid-cols-2 gap-6 mt-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
                    {lesson.example && (
                      <div className="p-6 bg-green-500/5 border border-green-500/10 rounded-2xl">
                         <h4 className="text-green-400 text-[10px] font-black uppercase tracking-widest mb-3 text-center">Real World Example</h4>
@@ -126,10 +136,11 @@ export default function LearnPage() {
 
                 <div className="grid grid-cols-1 gap-3">
                   {lesson.question.options.map((option: string) => (
-                    <button
+                    <motion.button
                       key={option}
                       disabled={isSubmitted}
                       onClick={() => setSelectedOption(option)}
+                      whileTap={{ scale: 0.98 }}
                       className={`text-left p-6 rounded-2xl border transition-all font-bold text-lg flex justify-between items-center ${
                         selectedOption === option
                           ? (isSubmitted
@@ -140,7 +151,7 @@ export default function LearnPage() {
                     >
                       <span>{option}</span>
                       {isSubmitted && option === lesson.question.correct_answer && <Check className="text-green-500" />}
-                    </button>
+                    </motion.button>
                   ))}
                 </div>
               </section>
@@ -151,14 +162,17 @@ export default function LearnPage() {
 
       <AnimatePresence>
         {selectedOption && (
-          <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }}
+          <motion.div
+            initial={{ y: 100 }}
+            animate={{ y: 0 }}
+            exit={{ y: 100 }}
             className={`fixed bottom-0 left-0 right-0 p-8 border-t backdrop-blur-2xl z-30 ${
               isSubmitted
                 ? (isCorrect ? 'bg-green-500/10 border-green-500/20' : 'bg-red-500/10 border-red-500/20')
                 : 'bg-[#0A0A0A]/90 border-white/5'
             }`}
           >
-            <div className="max-w-3xl mx-auto flex items-center justify-between">
+            <div className="max-w-3xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
               <div className="flex-1 mr-8">
                 {isSubmitted ? (
                   <div className="flex items-start space-x-4">
@@ -178,7 +192,7 @@ export default function LearnPage() {
               </div>
               <button
                 onClick={isSubmitted ? () => router.push('/dashboard') : handleSubmit}
-                className={`px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl transition-all ${
+                className={`px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl transition-all w-full md:w-auto ${
                   isSubmitted
                     ? (isCorrect ? 'bg-green-600 hover:bg-green-500 text-white' : 'bg-red-600 hover:bg-red-500 text-white')
                     : 'bg-white text-black hover:bg-gray-200'
@@ -190,6 +204,18 @@ export default function LearnPage() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.div>
+  );
+}
+
+export default function LearnPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center text-white">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+      </div>
+    }>
+      <LearnContent />
+    </Suspense>
   );
 }

@@ -4,17 +4,39 @@ import { useEffect, useState } from 'react';
 import { AdminSidebar } from '@/components/admin/Sidebar';
 import {
   Package, Download, Search, Globe, Shield, Star,
-  CheckCircle, Plus, LayoutGrid, List
+  CheckCircle, Plus, LayoutGrid, List, RefreshCw
 } from 'lucide-react';
 import { academyApi } from '@/lib/api';
 
 export default function MarketplacePage() {
-  const [packs, setPacks] = useState<any[]>([
-    { id: 'aws-cloud-practitioner', name: 'AWS Cloud Practitioner', provider: 'AWS', version: '2024.1', status: 'installed', description: 'Foundational cloud concepts and security model.' },
-    { id: 'azure-fundamentals', name: 'Azure Fundamentals (AZ-900)', provider: 'Microsoft', version: '2023.4', status: 'available', description: 'Core Azure services and governance.' },
-    { id: 'google-cloud-digital', name: 'Google Cloud Digital Leader', provider: 'Google', version: '2024.1', status: 'available', description: 'Cloud transformation and GCP services.' },
-    { id: 'sap-btp-foundations', name: 'SAP BTP Fundamentals', provider: 'SAP', version: '1.2', status: 'available', description: 'Integration and extension on SAP BTP.' },
-  ]);
+  const [packs, setPacks] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [installing, setInstalling] = useState<string | null>(null);
+
+  const fetchPacks = async () => {
+    try {
+      const res = await academyApi.getPacks();
+      setPacks(res.data);
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchPacks(); }, []);
+
+  const handleInstall = async (packId: string) => {
+    setInstalling(packId);
+    try {
+      await academyApi.importPack(packId);
+      await fetchPacks();
+    } catch (err) { console.error(err); }
+    finally { setInstalling(null); }
+  };
+
+  if (loading) return (
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center">
+       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-[#050505] text-white flex">
@@ -35,21 +57,6 @@ export default function MarketplacePage() {
             </button>
           </header>
 
-          <div className="flex items-center space-x-4 mb-10">
-             <div className="flex-1 relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                <input
-                  type="text"
-                  placeholder="Search providers or certifications..."
-                  className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 pl-12 pr-4 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all"
-                />
-             </div>
-             <div className="bg-white/[0.03] border border-white/5 p-1 rounded-xl flex">
-                <button className="p-2.5 bg-white/10 rounded-lg"><LayoutGrid className="w-4 h-4" /></button>
-                <button className="p-2.5 text-white/20 hover:text-white"><List className="w-4 h-4" /></button>
-             </div>
-          </div>
-
           <div className="grid grid-cols-2 gap-6">
             {packs.map((pack) => (
               <div key={pack.id} className="bg-white/[0.03] border border-white/5 rounded-[2rem] p-8 hover:bg-white/[0.05] transition-all group relative overflow-hidden">
@@ -66,14 +73,18 @@ export default function MarketplacePage() {
                        <h3 className="font-bold text-xl">{pack.name}</h3>
                     </div>
                   </div>
-                  {pack.status === 'installed' ? (
+                  {pack.status === 'ready' ? (
                     <div className="bg-green-500/10 text-green-500 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center space-x-2 border border-green-500/20">
                       <CheckCircle className="w-3 h-3" />
                       <span>Installed</span>
                     </div>
                   ) : (
-                    <button className="bg-white text-black px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest hover:bg-indigo-50 transition-colors">
-                      Install
+                    <button
+                      onClick={() => handleInstall(pack.id)}
+                      disabled={installing === pack.id}
+                      className="bg-white text-black px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest hover:bg-indigo-50 transition-colors disabled:opacity-50"
+                    >
+                      {installing === pack.id ? <RefreshCw className="w-3 h-3 animate-spin" /> : 'Install'}
                     </button>
                   )}
                 </div>
@@ -85,11 +96,7 @@ export default function MarketplacePage() {
                 <div className="flex items-center space-x-6 pt-6 border-t border-white/5">
                    <div className="flex items-center space-x-2">
                       <Shield className="w-4 h-4 text-indigo-400" />
-                      <span className="text-xs font-bold">Official Guide</span>
-                   </div>
-                   <div className="flex items-center space-x-2">
-                      <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                      <span className="text-xs font-bold text-white/60">4.9 (1.2k)</span>
+                      <span className="text-xs font-bold text-white/60">Verified Content</span>
                    </div>
                 </div>
               </div>

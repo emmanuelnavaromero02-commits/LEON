@@ -1,0 +1,9 @@
+- id: s4-ux-fiori
+  name: SAP Fiori User Experience
+  weight: 20
+- id: s4-business-processes
+  name: Business Processes in S/4HANA
+  weight: 50
+- id: s4-architecture
+  name: S/4HANA Architecture and Deployment
+  weight: 30

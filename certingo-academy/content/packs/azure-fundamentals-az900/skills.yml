@@ -1,0 +1,32 @@
+- id: az-availability-zones
+  domain_id: az-architecture
+  name: Azure Availability Zones
+  level: beginner
+- id: az-resource-groups
+  domain_id: az-architecture
+  name: Resource Groups
+  level: beginner
+- id: az-rbac
+  domain_id: az-management
+  name: Azure RBAC (Role-Based Access Control)
+  level: beginner
+- id: az-compliance
+  domain_id: az-management
+  name: Compliance and Security
+  level: beginner
+- id: az-paas-iaas-saas
+  domain_id: az-cloud-concepts
+  name: IaaS, PaaS, and SaaS
+  level: beginner
+- id: az-total-cost-of-ownership
+  domain_id: az-management
+  name: TCO Tool
+  level: beginner
+- id: az-active-directory
+  domain_id: az-architecture
+  name: Microsoft Entra ID (Active Directory)
+  level: intermediate
+- id: az-virtual-machines
+  domain_id: az-architecture
+  name: Azure Virtual Machines
+  level: beginner
