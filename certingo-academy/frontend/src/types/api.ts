@@ -80,10 +80,72 @@ export interface LessonSubmission {
   skill_id: string;
 }
 
+/**
+ * A single exam question as returned by the exam *start* endpoint.
+ *
+ * Unlike {@link PracticeQuestion}, this shape intentionally omits
+ * `correct_answer` and `explanation`: grading happens on the server, and the
+ * start payload never reveals the answer key to the client.
+ */
+export interface ExamQuestion {
+  id: string;
+  prompt: string;
+  options: string[];
+  difficulty: Difficulty;
+  domain_id: string;
+}
+
 /** Response of POST /api/academy/exam/start/{userId}. */
 export interface ExamStartResponse {
-  questions: PracticeQuestion[];
-  [key: string]: unknown;
+  exam_id: string;
+  questions: ExamQuestion[];
+  total: number;
+  duration_minutes: number;
+}
+
+/** A single answer submitted for grading (POST /api/academy/exam/submit). */
+export interface ExamAnswer {
+  question_id: string;
+  selected_answer: string;
+}
+
+/** Body of POST /api/academy/exam/submit/{userId}. */
+export interface ExamSubmission {
+  exam_id: string;
+  answers: ExamAnswer[];
+}
+
+/** Per-domain score breakdown returned alongside the exam result. */
+export interface DomainBreakdown {
+  domain_id: string;
+  name: string;
+  /** Domain score as a 0-1 fraction. */
+  score: number;
+}
+
+/** Server-graded outcome for a single question, revealed after submit. */
+export interface ExamQuestionResult {
+  question_id: string;
+  selected_answer: string;
+  correct: boolean;
+  correct_answer: string;
+  explanation: string;
+}
+
+/**
+ * Response of POST /api/academy/exam/submit/{userId}.
+ *
+ * Everything here is computed server-side — the client renders it verbatim and
+ * never re-derives the score.
+ */
+export interface ExamResult {
+  /** Overall score as a 0-1 fraction (multiply by 100 for a percentage). */
+  score: number;
+  total: number;
+  correct: number;
+  passed: boolean;
+  domain_breakdown: DomainBreakdown[];
+  results: ExamQuestionResult[];
 }
 
 /** A single diagnostic answer (POST /api/academy/diagnostic/submit/{userId}). */
