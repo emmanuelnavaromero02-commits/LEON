@@ -21,7 +21,7 @@ export default function PracticePage() {
   const fetchNext = async () => {
     const id = localStorage.getItem('certingo_user_id');
     if (!id) {
-      router.push('/onboarding');
+      router.push('/login');
       return;
     }
     setLoading(true);

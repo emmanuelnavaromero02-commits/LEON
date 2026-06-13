@@ -18,7 +18,7 @@ export default function ExamPage() {
   useEffect(() => {
     const id = localStorage.getItem('certingo_user_id');
     if (!id) {
-      router.push('/onboarding');
+      router.push('/login');
       return;
     }
 

@@ -7,8 +7,9 @@ import { usePathname } from 'next/navigation';
 import {
   Activity, Layout, ShoppingCart, BookOpen, Layers,
   Database, Zap, Cpu, Key, History, Settings, ChevronRight,
-  Menu, X
+  Menu, X, LogOut
 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const ADMIN_NAV = [
   { group: 'Operations', items: [
@@ -33,6 +34,11 @@ const ADMIN_NAV = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const { user, logout } = useAuth();
+
+  const initials = user?.full_name
+    ? user.full_name.split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
+    : 'AD';
 
   return (
     <aside className="w-64 bg-[#0A0A0A] border-r border-white/5 flex flex-col h-screen fixed">
@@ -82,13 +88,20 @@ export function AdminSidebar() {
 
       <div className="p-4 border-t border-white/5">
         <div className="bg-white/5 p-4 rounded-xl flex items-center space-x-3">
-          <div className="w-8 h-8 bg-indigo-500/20 border border-indigo-500/30 rounded-full flex items-center justify-center">
-            <span className="text-indigo-400 font-bold text-xs">SA</span>
+          <div className="w-8 h-8 bg-indigo-500/20 border border-indigo-500/30 rounded-full flex items-center justify-center shrink-0">
+            <span className="text-indigo-400 font-bold text-xs">{initials}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-bold text-white truncate">Super Admin</p>
-            <p className="text-[10px] text-white/30 truncate">superadmin@certingo.demo</p>
+            <p className="text-xs font-bold text-white truncate">{user?.full_name ?? 'Admin'}</p>
+            <p className="text-[10px] text-white/30 truncate">{user?.email ?? ''}</p>
           </div>
+          <button
+            onClick={logout}
+            title="Log out"
+            className="p-2 rounded-lg text-white/30 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </aside>

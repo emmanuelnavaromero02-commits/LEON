@@ -13,7 +13,7 @@ export default function ReadinessDashboardPage() {
 
   useEffect(() => {
     const id = localStorage.getItem('certingo_user_id');
-    if (!id) { router.push('/onboarding'); return; }
+    if (!id) { router.push('/login'); return; }
 
     const fetchStats = async () => {
       try {
