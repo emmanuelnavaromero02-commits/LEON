@@ -1,47 +1,615 @@
+# AWS Certified Cloud Practitioner (CLF-C02) question bank.
+# Each item maps to a skill id from skills.yml. correct_answer must match one
+# of the options exactly. Difficulty is one of easy|medium|hard.
+
+# =========================================================================== #
+# Domain: Cloud Concepts
+# =========================================================================== #
+
+# --- Skill: cloud-benefits -------------------------------------------------- #
 - skill_id: cloud-benefits
   prompt: "Which of the following represents the concept of 'Agility' in cloud computing?"
   options: ["The ability to scale resources up", "Reducing the time to provision new resources from weeks to minutes", "Paying only for what you use", "Distributing traffic across multiple instances"]
   correct_answer: "Reducing the time to provision new resources from weeks to minutes"
   difficulty: "medium"
-  explanation: "Agility refers to the speed at which you can respond to changes and innovate."
+  explanation: "Agility refers to the speed at which you can respond to changes and innovate, turning provisioning that took weeks into minutes."
   status: "published"
 
+- skill_id: cloud-benefits
+  prompt: "What is the main financial benefit of trading capital expense (CapEx) for variable expense (OpEx) in the cloud?"
+  options: ["You pay a fixed monthly fee regardless of usage", "You only pay for the computing resources you consume", "You must buy hardware up front", "You get free unlimited storage"]
+  correct_answer: "You only pay for the computing resources you consume"
+  difficulty: "easy"
+  explanation: "The cloud lets you stop paying for data centers up front and instead pay variable costs only when you consume resources."
+  status: "published"
+
+- skill_id: cloud-benefits
+  prompt: "A company wants to deploy its application closer to users worldwide to reduce latency. Which cloud benefit does this describe?"
+  options: ["Economies of scale", "Going global in minutes", "Elasticity", "Capital expenditure"]
+  correct_answer: "Going global in minutes"
+  difficulty: "easy"
+  explanation: "AWS lets you deploy in multiple Regions around the world with a few clicks, placing workloads closer to end users for lower latency."
+  status: "published"
+
+- skill_id: cloud-benefits
+  prompt: "Which cloud benefit allows AWS to pass lower per-unit costs to customers because of its massive aggregated usage?"
+  options: ["Elasticity", "Economies of scale", "High availability", "Agility"]
+  correct_answer: "Economies of scale"
+  difficulty: "medium"
+  explanation: "Because hundreds of thousands of customers aggregate usage in the cloud, AWS achieves economies of scale and passes the savings on through lower prices."
+  status: "published"
+
+- skill_id: cloud-benefits
+  prompt: "What is the difference between elasticity and scalability in AWS?"
+  options: ["They are identical concepts", "Scalability is the ability to grow capacity; elasticity is automatically adding and removing capacity to match demand", "Elasticity only applies to storage", "Scalability only happens manually once per year"]
+  correct_answer: "Scalability is the ability to grow capacity; elasticity is automatically adding and removing capacity to match demand"
+  difficulty: "hard"
+  explanation: "Scalability is the capability to increase capacity; elasticity automatically scales out and in (both directions) in response to real-time demand."
+  status: "published"
+
+- skill_id: cloud-benefits
+  prompt: "Which of the following is NOT one of the six advantages of cloud computing as described by AWS?"
+  options: ["Trade capital expense for variable expense", "Stop guessing capacity", "Increase upfront data-center spending", "Go global in minutes"]
+  correct_answer: "Increase upfront data-center spending"
+  difficulty: "medium"
+  explanation: "The cloud lets you avoid (not increase) upfront data-center spending. Reducing CapEx is one of the six advantages."
+  status: "published"
+
+# --- Skill: pricing-fundamentals ------------------------------------------- #
+- skill_id: pricing-fundamentals
+  prompt: "Which three are the fundamental drivers of cost with AWS?"
+  options: ["Compute, storage, and outbound data transfer", "Number of users, support plan, and Region count", "Tags, IAM roles, and VPCs", "Free tier, savings plans, and reserved instances"]
+  correct_answer: "Compute, storage, and outbound data transfer"
+  difficulty: "medium"
+  explanation: "AWS describes the three main cost drivers as compute, storage, and outbound data transfer. Inbound data transfer is generally free."
+  status: "published"
+
+- skill_id: pricing-fundamentals
+  prompt: "Under the AWS pricing model, how is most inbound data transfer (data into AWS) charged?"
+  options: ["At the same rate as outbound transfer", "It is generally free", "Per request only", "Double the storage rate"]
+  correct_answer: "It is generally free"
+  difficulty: "easy"
+  explanation: "Inbound data transfer into AWS is typically free; you are charged for outbound data transfer to the internet."
+  status: "published"
+
+- skill_id: pricing-fundamentals
+  prompt: "Which EC2 purchasing option provides the largest discount in exchange for a 1- or 3-year commitment?"
+  options: ["On-Demand Instances", "Spot Instances", "Reserved Instances", "Dedicated Hosts billed hourly"]
+  correct_answer: "Reserved Instances"
+  difficulty: "easy"
+  explanation: "Reserved Instances offer up to ~72% savings versus On-Demand in exchange for a 1- or 3-year commitment."
+  status: "published"
+
+- skill_id: pricing-fundamentals
+  prompt: "A workload is fault-tolerant and can be interrupted at any time. Which EC2 pricing option offers the deepest discount for it?"
+  options: ["On-Demand Instances", "Spot Instances", "Reserved Instances", "Savings Plans"]
+  correct_answer: "Spot Instances"
+  difficulty: "medium"
+  explanation: "Spot Instances use spare EC2 capacity at up to ~90% off On-Demand but can be reclaimed with a two-minute warning, ideal for interruptible workloads."
+  status: "published"
+
+- skill_id: pricing-fundamentals
+  prompt: "What does the AWS Free Tier 'Always Free' category provide?"
+  options: ["12 months of free usage that then expires", "Offers that do not expire as long as you stay within the limits", "A one-time credit of 100 USD", "Free usage only during a trial weekend"]
+  correct_answer: "Offers that do not expire as long as you stay within the limits"
+  difficulty: "medium"
+  explanation: "The Free Tier has three types: 12-months-free, trials, and Always Free offers (such as the first 1 million AWS Lambda requests per month) that never expire."
+  status: "published"
+
+- skill_id: pricing-fundamentals
+  prompt: "Which pricing model offers lower compute prices in exchange for a commitment to a consistent amount of usage (measured in USD/hour) across EC2, Fargate, and Lambda?"
+  options: ["Spot Instances", "Savings Plans", "On-Demand", "Dedicated Hosts"]
+  correct_answer: "Savings Plans"
+  difficulty: "hard"
+  explanation: "Savings Plans give discounts (similar to Reserved Instances) in exchange for committing to a steady spend (USD/hour) for 1 or 3 years, and apply across EC2, Fargate, and Lambda."
+  status: "published"
+
+# =========================================================================== #
+# Domain: Security and Compliance
+# =========================================================================== #
+
+# --- Skill: shared-responsibility ------------------------------------------ #
 - skill_id: shared-responsibility
   prompt: "In the Shared Responsibility Model, which task is the sole responsibility of the customer?"
   options: ["Physical security of data centers", "Patching the underlying virtualization layer", "Managing AWS Identity and Access Management (IAM)", "Maintaining server hardware"]
   correct_answer: "Managing AWS Identity and Access Management (IAM)"
   difficulty: "medium"
-  explanation: "Customers are responsible for security 'in' the cloud, including user management and access."
+  explanation: "Customers are responsible for security 'in' the cloud, including identity and access management, while AWS handles security 'of' the cloud."
   status: "published"
 
+- skill_id: shared-responsibility
+  prompt: "Under the Shared Responsibility Model, who is responsible for security 'of' the cloud?"
+  options: ["The customer", "AWS", "A third-party auditor", "It is shared 50/50 in all cases"]
+  correct_answer: "AWS"
+  difficulty: "easy"
+  explanation: "AWS is responsible for security OF the cloud (hardware, the global infrastructure, and the foundational services); customers are responsible for security IN the cloud."
+  status: "published"
+
+- skill_id: shared-responsibility
+  prompt: "For Amazon EC2, which of the following is the customer's responsibility?"
+  options: ["Patching the guest operating system and applications", "Securing the physical hypervisor host", "Maintaining the data-center network cabling", "Replacing failed physical disks"]
+  correct_answer: "Patching the guest operating system and applications"
+  difficulty: "medium"
+  explanation: "EC2 is an IaaS service: AWS manages the host and hypervisor, but the customer patches the guest OS, applications, and configures security groups."
+  status: "published"
+
+- skill_id: shared-responsibility
+  prompt: "Encryption of customer data at rest and in transit is best described as which type of responsibility?"
+  options: ["Always AWS's responsibility", "Always the customer's responsibility to configure, while AWS provides the tools", "Never possible in the cloud", "A responsibility handled by the ISP"]
+  correct_answer: "Always the customer's responsibility to configure, while AWS provides the tools"
+  difficulty: "hard"
+  explanation: "AWS provides encryption capabilities (e.g., KMS, TLS), but enabling and configuring encryption of customer data is the customer's responsibility."
+  status: "published"
+
+- skill_id: shared-responsibility
+  prompt: "When using a fully managed service such as Amazon S3, which responsibility shifts to AWS compared to EC2?"
+  options: ["Choosing bucket access policies", "Patching the underlying operating system and infrastructure", "Classifying the data stored", "Managing user permissions"]
+  correct_answer: "Patching the underlying operating system and infrastructure"
+  difficulty: "medium"
+  explanation: "With managed services like S3, AWS handles OS and infrastructure patching. The customer still controls data, access policies, and classification."
+  status: "published"
+
+- skill_id: shared-responsibility
+  prompt: "Which of the following remains the customer's responsibility regardless of which AWS service is used?"
+  options: ["Physical data-center access controls", "Customer data and who has access to it", "Hardware lifecycle management", "Hypervisor patching"]
+  correct_answer: "Customer data and who has access to it"
+  difficulty: "easy"
+  explanation: "Customer data, and control over who can access it, is always the customer's responsibility across every AWS service model."
+  status: "published"
+
+# --- Skill: iam-basics ------------------------------------------------------ #
+- skill_id: iam-basics
+  prompt: "What is the AWS best practice regarding the root user account?"
+  options: ["Use it for all daily administrative tasks", "Lock it away, enable MFA, and avoid using it for everyday tasks", "Share its credentials with the whole admin team", "Delete it immediately after account creation"]
+  correct_answer: "Lock it away, enable MFA, and avoid using it for everyday tasks"
+  difficulty: "easy"
+  explanation: "The root user has unrestricted access. Best practice is to enable MFA on it, avoid daily use, and create IAM users/roles for routine work."
+  status: "published"
+
+- skill_id: iam-basics
+  prompt: "Which IAM entity is best suited to grant an EC2 instance permission to read from an S3 bucket without embedding long-term credentials?"
+  options: ["An IAM user with an access key stored on the instance", "An IAM role attached to the instance", "The root user credentials", "A hardcoded password in the application"]
+  correct_answer: "An IAM role attached to the instance"
+  difficulty: "medium"
+  explanation: "IAM roles provide temporary credentials to AWS resources like EC2, avoiding the need to store long-term access keys on the instance."
+  status: "published"
+
+- skill_id: iam-basics
+  prompt: "What does the principle of least privilege recommend when assigning IAM permissions?"
+  options: ["Grant administrator access to everyone for convenience", "Grant only the permissions required to perform a task, and no more", "Deny all access by default forever", "Give every user the same broad policy"]
+  correct_answer: "Grant only the permissions required to perform a task, and no more"
+  difficulty: "easy"
+  explanation: "Least privilege means giving users and services only the minimal permissions they need, reducing the blast radius of a compromise."
+  status: "published"
+
+- skill_id: iam-basics
+  prompt: "An administrator wants to apply a common set of permissions to 50 developers efficiently. What is the recommended approach?"
+  options: ["Attach the policy individually to each of the 50 users", "Create an IAM group, attach the policy to the group, and add the users to it", "Share one IAM user among all 50 developers", "Use the root account for all developers"]
+  correct_answer: "Create an IAM group, attach the policy to the group, and add the users to it"
+  difficulty: "medium"
+  explanation: "IAM groups let you manage permissions for many users at once. Attach policies to the group and add users; permission changes apply to all members."
+  status: "published"
+
+- skill_id: iam-basics
+  prompt: "Which security feature requires a second piece of evidence (such as a code from a device) in addition to a password when signing in?"
+  options: ["Multi-Factor Authentication (MFA)", "A stronger password policy", "An IAM permissions boundary", "A VPC security group"]
+  correct_answer: "Multi-Factor Authentication (MFA)"
+  difficulty: "easy"
+  explanation: "MFA adds a second factor (a one-time code from a hardware or virtual device) on top of the password, greatly improving sign-in security."
+  status: "published"
+
+- skill_id: iam-basics
+  prompt: "In an IAM policy, what happens when an explicit Deny and an explicit Allow both match the same action?"
+  options: ["The Allow wins", "The Deny wins", "The request is sent for manual review", "Both are ignored and access is granted"]
+  correct_answer: "The Deny wins"
+  difficulty: "hard"
+  explanation: "IAM evaluation logic is deny-by-default; an explicit Deny always overrides any Allow, so the Deny takes precedence."
+  status: "published"
+
+- skill_id: iam-basics
+  prompt: "Which AWS service helps you centrally manage and govern multiple AWS accounts, including consolidated billing and service control policies?"
+  options: ["AWS IAM Identity Center only", "AWS Organizations", "AWS Config", "Amazon Cognito"]
+  correct_answer: "AWS Organizations"
+  difficulty: "medium"
+  explanation: "AWS Organizations lets you group and centrally manage multiple accounts, apply Service Control Policies (SCPs), and consolidate billing."
+  status: "published"
+
+# --- Skill: security-groups-nacl ------------------------------------------- #
+- skill_id: security-groups-nacl
+  prompt: "A developer wants to block a specific malicious IP address from entering their VPC subnet. Which tool should be used?"
+  options: ["Security Group", "Network ACL", "IAM Policy", "Route Table"]
+  correct_answer: "Network ACL"
+  difficulty: "hard"
+  explanation: "Network ACLs support explicit Deny rules for specific IPs at the subnet level, whereas Security Groups only support Allow rules."
+  status: "published"
+
+- skill_id: security-groups-nacl
+  prompt: "Which statement correctly describes a key difference between Security Groups and Network ACLs?"
+  options: ["Security Groups are stateless; Network ACLs are stateful", "Security Groups are stateful; Network ACLs are stateless", "Both are stateless", "Both are stateful"]
+  correct_answer: "Security Groups are stateful; Network ACLs are stateless"
+  difficulty: "medium"
+  explanation: "Security Groups are stateful (return traffic is automatically allowed). Network ACLs are stateless, so you must allow both inbound and outbound directions explicitly."
+  status: "published"
+
+- skill_id: security-groups-nacl
+  prompt: "At which level does a Security Group operate?"
+  options: ["At the subnet level", "At the instance (ENI) level", "At the VPC level only", "At the AWS Region level"]
+  correct_answer: "At the instance (ENI) level"
+  difficulty: "easy"
+  explanation: "Security Groups are attached to elastic network interfaces of instances, acting as a virtual firewall at the instance level. NACLs operate at the subnet level."
+  status: "published"
+
+- skill_id: security-groups-nacl
+  prompt: "By default, what does a newly created Security Group allow?"
+  options: ["All inbound and all outbound traffic", "No inbound traffic and all outbound traffic", "All inbound traffic and no outbound traffic", "No traffic in either direction"]
+  correct_answer: "No inbound traffic and all outbound traffic"
+  difficulty: "medium"
+  explanation: "A new Security Group denies all inbound traffic by default (no inbound rules) and allows all outbound traffic until you change the rules."
+  status: "published"
+
+- skill_id: security-groups-nacl
+  prompt: "Can a Security Group rule reference another Security Group as its source?"
+  options: ["No, only IP CIDR ranges are allowed", "Yes, you can reference another Security Group as the source", "Only if both are in different VPCs", "Only for outbound rules"]
+  correct_answer: "Yes, you can reference another Security Group as the source"
+  difficulty: "hard"
+  explanation: "Security Groups can reference other Security Groups as sources/destinations, which is useful for allowing tiers (e.g., web -> app) to communicate without hardcoding IPs."
+  status: "published"
+
+- skill_id: security-groups-nacl
+  prompt: "How are Network ACL rules evaluated?"
+  options: ["All rules are evaluated and the most permissive wins", "In order, by rule number, from lowest to highest until a match is found", "Randomly", "Only the highest-numbered rule matters"]
+  correct_answer: "In order, by rule number, from lowest to highest until a match is found"
+  difficulty: "medium"
+  explanation: "NACL rules are processed in ascending order by rule number; the first rule that matches the traffic is applied, so lower numbers take precedence."
+  status: "published"
+
+# =========================================================================== #
+# Domain: Technology
+# =========================================================================== #
+
+# --- Skill: ec2-basics ------------------------------------------------------ #
+- skill_id: ec2-basics
+  prompt: "What does Amazon EC2 primarily provide?"
+  options: ["Object storage in the cloud", "Resizable virtual servers (compute capacity) in the cloud", "A managed relational database", "A content delivery network"]
+  correct_answer: "Resizable virtual servers (compute capacity) in the cloud"
+  difficulty: "easy"
+  explanation: "Amazon EC2 (Elastic Compute Cloud) provides resizable virtual machine instances, the core IaaS compute service in AWS."
+  status: "published"
+
+- skill_id: ec2-basics
+  prompt: "Which EC2 feature automatically adjusts the number of instances to match demand?"
+  options: ["Elastic Load Balancing", "EC2 Auto Scaling", "Amazon Machine Image (AMI)", "Elastic IP"]
+  correct_answer: "EC2 Auto Scaling"
+  difficulty: "medium"
+  explanation: "EC2 Auto Scaling adds or removes instances automatically based on demand or schedules, supporting elasticity and cost optimization."
+  status: "published"
+
+- skill_id: ec2-basics
+  prompt: "What is an Amazon Machine Image (AMI)?"
+  options: ["A monitoring dashboard for instances", "A template containing the OS and configuration used to launch an instance", "A type of EBS volume", "A billing report"]
+  correct_answer: "A template containing the OS and configuration used to launch an instance"
+  difficulty: "easy"
+  explanation: "An AMI is a pre-configured template (OS, application server, applications) from which EC2 instances are launched."
+  status: "published"
+
+- skill_id: ec2-basics
+  prompt: "A company needs to distribute incoming application traffic across multiple EC2 instances for high availability. Which service should they use?"
+  options: ["Amazon Route 53 health checks only", "Elastic Load Balancing (ELB)", "Amazon CloudFront", "AWS Direct Connect"]
+  correct_answer: "Elastic Load Balancing (ELB)"
+  difficulty: "medium"
+  explanation: "Elastic Load Balancing automatically distributes incoming traffic across multiple targets (such as EC2 instances) in one or more Availability Zones."
+  status: "published"
+
+- skill_id: ec2-basics
+  prompt: "Which EC2 instance family is optimized for workloads that require high memory-to-vCPU ratios, such as in-memory databases?"
+  options: ["Compute optimized (C family)", "Memory optimized (R family)", "Storage optimized (I family)", "General purpose (T family)"]
+  correct_answer: "Memory optimized (R family)"
+  difficulty: "hard"
+  explanation: "Memory optimized instances (e.g., the R family) deliver high memory per vCPU, ideal for in-memory caches and large databases."
+  status: "published"
+
+- skill_id: ec2-basics
+  prompt: "What is the key billing difference between stopping and terminating an EC2 instance?"
+  options: ["Both keep charging for compute the same way", "A stopped instance stops compute charges but its EBS storage may still incur cost; a terminated instance is permanently deleted", "Terminating keeps the instance running", "Stopping permanently deletes the instance"]
+  correct_answer: "A stopped instance stops compute charges but its EBS storage may still incur cost; a terminated instance is permanently deleted"
+  difficulty: "medium"
+  explanation: "Stopping halts compute billing while retaining the instance and its EBS volumes (which can still cost money). Terminating deletes the instance permanently."
+  status: "published"
+
+# --- Skill: s3-basics ------------------------------------------------------- #
 - skill_id: s3-basics
   prompt: "What is the maximum size of a single object that can be stored in Amazon S3?"
   options: ["5 GB", "5 TB", "Unlimited", "100 GB"]
   correct_answer: "5 TB"
   difficulty: "hard"
-  explanation: "While total storage is unlimited, a single object has a 5 TB limit."
+  explanation: "While total bucket storage is effectively unlimited, a single S3 object has a 5 TB maximum size."
   status: "published"
 
-- skill_id: security-groups-nacl
-  prompt: "A developer wants to block a specific malicious IP address from entering their VPC. Which tool should be used?"
-  options: ["Security Group", "Network ACL", "IAM Policy", "Route Table"]
-  correct_answer: "Network ACL"
-  difficulty: "hard"
-  explanation: "Network ACLs support 'Deny' rules for specific IPs, whereas Security Groups only support 'Allow' rules."
-  status: "published"
-
-- skill_id: cost-explorer
-  prompt: "Which AWS tool provides highly granular visualizations of cost and usage patterns over the last 12 months?"
-  options: ["AWS Budgets", "AWS Cost Explorer", "AWS Trusted Advisor", "Cost & Usage Report"]
-  correct_answer: "AWS Cost Explorer"
+- skill_id: s3-basics
+  prompt: "Which type of storage does Amazon S3 provide?"
+  options: ["Block storage", "Object storage", "File system (NFS) storage", "In-memory storage"]
+  correct_answer: "Object storage"
   difficulty: "easy"
-  explanation: "Cost Explorer is the primary tool for visualization and analysis of historical costs."
+  explanation: "Amazon S3 is an object storage service. Objects are stored in buckets and accessed via APIs, not mounted like block or file storage."
   status: "published"
 
+- skill_id: s3-basics
+  prompt: "A company stores backups that are rarely accessed and needs the lowest-cost option, accepting retrieval times of minutes to hours. Which S3 storage class fits best?"
+  options: ["S3 Standard", "S3 Glacier Deep Archive", "S3 Standard-IA", "S3 One Zone-IA"]
+  correct_answer: "S3 Glacier Deep Archive"
+  difficulty: "medium"
+  explanation: "S3 Glacier Deep Archive is the lowest-cost class for long-term archives that are rarely accessed and tolerate retrieval times measured in hours."
+  status: "published"
+
+- skill_id: s3-basics
+  prompt: "Which S3 feature keeps multiple versions of an object so you can recover from accidental overwrites or deletions?"
+  options: ["S3 Lifecycle policies", "S3 Versioning", "S3 Transfer Acceleration", "S3 Select"]
+  correct_answer: "S3 Versioning"
+  difficulty: "medium"
+  explanation: "S3 Versioning retains every version of an object in a bucket, allowing recovery from unintended overwrites and deletions."
+  status: "published"
+
+- skill_id: s3-basics
+  prompt: "By default, who can access a newly created Amazon S3 bucket and its objects?"
+  options: ["Everyone on the internet", "Only the bucket owner / account that created it", "Any authenticated AWS user globally", "Anyone with the bucket name"]
+  correct_answer: "Only the bucket owner / account that created it"
+  difficulty: "easy"
+  explanation: "By default S3 buckets are private; only the owner has access. Public access requires explicit configuration (and Block Public Access is on by default)."
+  status: "published"
+
+- skill_id: s3-basics
+  prompt: "Which S3 capability automatically moves objects between storage classes based on rules you define, to optimize cost over time?"
+  options: ["S3 Lifecycle configuration", "S3 Cross-Region Replication", "S3 Object Lock", "S3 Inventory"]
+  correct_answer: "S3 Lifecycle configuration"
+  difficulty: "hard"
+  explanation: "S3 Lifecycle rules transition objects to cheaper classes (e.g., to Standard-IA or Glacier) or expire them automatically after a set time."
+  status: "published"
+
+# --- Skill: lambda-serverless ---------------------------------------------- #
 - skill_id: lambda-serverless
   prompt: "Which of the following is a characteristic of serverless computing with AWS Lambda?"
   options: ["You must manage the underlying operating system", "You pay only for the compute time you consume", "It is designed for long-running processes up to 24 hours", "You must provision instances before deploying code"]
   correct_answer: "You pay only for the compute time you consume"
   difficulty: "medium"
-  explanation: "Lambda is event-driven and you are billed only for requests and execution duration."
+  explanation: "Lambda is event-driven and serverless; you are billed only for the number of requests and the execution duration, with no servers to manage."
+  status: "published"
+
+- skill_id: lambda-serverless
+  prompt: "What is the maximum execution duration for a single AWS Lambda function invocation?"
+  options: ["5 minutes", "15 minutes", "1 hour", "24 hours"]
+  correct_answer: "15 minutes"
+  difficulty: "hard"
+  explanation: "A Lambda invocation can run for a maximum of 15 minutes. Longer-running tasks should use services like EC2, ECS, or AWS Batch."
+  status: "published"
+
+- skill_id: lambda-serverless
+  prompt: "AWS Lambda is best described as which type of cloud service model?"
+  options: ["Infrastructure as a Service (IaaS)", "Function as a Service / serverless compute", "Software as a Service (SaaS)", "Platform storage"]
+  correct_answer: "Function as a Service / serverless compute"
+  difficulty: "easy"
+  explanation: "Lambda runs your code in response to events without provisioning or managing servers, the canonical Function-as-a-Service (serverless) model."
+  status: "published"
+
+- skill_id: lambda-serverless
+  prompt: "Which scenario is the best fit for AWS Lambda?"
+  options: ["A 10-hour nightly batch render job", "Resizing an image automatically whenever a file is uploaded to S3", "Running a persistent stateful database engine", "Hosting an operating system for remote desktop users"]
+  correct_answer: "Resizing an image automatically whenever a file is uploaded to S3"
+  difficulty: "medium"
+  explanation: "Lambda excels at short, event-driven tasks. Reacting to an S3 upload to process an image is a classic serverless use case."
+  status: "published"
+
+- skill_id: lambda-serverless
+  prompt: "How does AWS Lambda scale when many events arrive at once?"
+  options: ["You must manually launch more instances", "It automatically scales by running more concurrent executions", "It queues all events and runs them one at a time", "It requires an Auto Scaling group to be configured"]
+  correct_answer: "It automatically scales by running more concurrent executions"
+  difficulty: "medium"
+  explanation: "Lambda automatically scales horizontally by running additional concurrent executions as events arrive, with no manual capacity management."
+  status: "published"
+
+- skill_id: lambda-serverless
+  prompt: "Which AWS service is commonly used to expose an AWS Lambda function as a RESTful HTTP endpoint?"
+  options: ["Amazon API Gateway", "Amazon Route 53", "AWS Direct Connect", "Amazon EBS"]
+  correct_answer: "Amazon API Gateway"
+  difficulty: "easy"
+  explanation: "Amazon API Gateway lets you create, publish, and secure REST/HTTP APIs that trigger Lambda functions, a core serverless pattern."
+  status: "published"
+
+# --- Skill: vpc-networking -------------------------------------------------- #
+- skill_id: vpc-networking
+  prompt: "What is an Amazon VPC?"
+  options: ["A managed relational database", "A logically isolated section of the AWS Cloud where you launch resources in a virtual network", "A content delivery network", "A serverless compute service"]
+  correct_answer: "A logically isolated section of the AWS Cloud where you launch resources in a virtual network"
+  difficulty: "easy"
+  explanation: "Amazon VPC (Virtual Private Cloud) lets you provision a logically isolated virtual network where you define IP ranges, subnets, and routing."
+  status: "published"
+
+- skill_id: vpc-networking
+  prompt: "Which component allows instances in a private subnet to access the internet for updates while preventing inbound connections from the internet?"
+  options: ["Internet Gateway", "NAT Gateway", "VPC Peering", "Virtual Private Gateway"]
+  correct_answer: "NAT Gateway"
+  difficulty: "hard"
+  explanation: "A NAT Gateway lets private-subnet instances initiate outbound internet traffic (e.g., for updates) while blocking unsolicited inbound connections."
+  status: "published"
+
+- skill_id: vpc-networking
+  prompt: "What does an Internet Gateway (IGW) provide for a VPC?"
+  options: ["A connection between the VPC and the internet for public subnets", "Encryption of all VPC traffic", "Automatic database backups", "DNS resolution only"]
+  correct_answer: "A connection between the VPC and the internet for public subnets"
+  difficulty: "medium"
+  explanation: "An Internet Gateway is a horizontally scaled component that allows communication between instances in your VPC (in public subnets) and the internet."
+  status: "published"
+
+- skill_id: vpc-networking
+  prompt: "What distinguishes a public subnet from a private subnet in a VPC?"
+  options: ["A public subnet has a route to an Internet Gateway; a private subnet does not", "Public subnets are larger", "Private subnets cannot contain EC2 instances", "Public subnets cannot use security groups"]
+  correct_answer: "A public subnet has a route to an Internet Gateway; a private subnet does not"
+  difficulty: "medium"
+  explanation: "A subnet is 'public' when its route table directs internet-bound traffic to an Internet Gateway; a private subnet has no such route."
+  status: "published"
+
+- skill_id: vpc-networking
+  prompt: "Which AWS networking service provides a dedicated, private physical connection between an on-premises data center and AWS?"
+  options: ["AWS Site-to-Site VPN", "AWS Direct Connect", "Amazon CloudFront", "VPC Peering"]
+  correct_answer: "AWS Direct Connect"
+  difficulty: "medium"
+  explanation: "AWS Direct Connect establishes a dedicated private network connection from on-premises to AWS, offering consistent bandwidth and lower latency than the public internet."
+  status: "published"
+
+- skill_id: vpc-networking
+  prompt: "Within a single VPC, how do subnets relate to Availability Zones?"
+  options: ["A subnet can span multiple Availability Zones", "Each subnet resides in exactly one Availability Zone", "Subnets are not tied to Availability Zones at all", "A subnet spans the entire Region"]
+  correct_answer: "Each subnet resides in exactly one Availability Zone"
+  difficulty: "hard"
+  explanation: "Each VPC subnet lives in a single Availability Zone. To build highly available architectures, you create subnets across multiple AZs."
+  status: "published"
+
+# --- Skill: rds-databases --------------------------------------------------- #
+- skill_id: rds-databases
+  prompt: "What does Amazon RDS primarily provide?"
+  options: ["A managed object storage service", "A managed relational database service", "A serverless function runtime", "A managed Kubernetes service"]
+  correct_answer: "A managed relational database service"
+  difficulty: "easy"
+  explanation: "Amazon RDS (Relational Database Service) makes it easy to set up, operate, and scale relational databases, handling patching, backups, and provisioning."
+  status: "published"
+
+- skill_id: rds-databases
+  prompt: "Which RDS feature provides a synchronous standby replica in a different Availability Zone for high availability and automatic failover?"
+  options: ["Read Replicas", "Multi-AZ deployment", "Cross-Region snapshots", "Elastic Load Balancing"]
+  correct_answer: "Multi-AZ deployment"
+  difficulty: "hard"
+  explanation: "RDS Multi-AZ maintains a synchronous standby in another AZ and fails over automatically, primarily for high availability and durability (not read scaling)."
+  status: "published"
+
+- skill_id: rds-databases
+  prompt: "Which RDS feature is used primarily to scale READ traffic by offloading queries to additional copies of the database?"
+  options: ["Multi-AZ deployment", "Read Replicas", "Automated backups", "Storage Auto Scaling"]
+  correct_answer: "Read Replicas"
+  difficulty: "medium"
+  explanation: "Read Replicas asynchronously replicate data to additional instances that serve read-only queries, helping scale read-heavy workloads."
+  status: "published"
+
+- skill_id: rds-databases
+  prompt: "Which of the following is NOT a database engine supported by Amazon RDS?"
+  options: ["MySQL", "PostgreSQL", "Microsoft SQL Server", "MongoDB"]
+  correct_answer: "MongoDB"
+  difficulty: "medium"
+  explanation: "RDS supports relational engines: MySQL, PostgreSQL, MariaDB, Oracle, SQL Server, and Amazon Aurora. MongoDB is a NoSQL database (use DocumentDB instead)."
+  status: "published"
+
+- skill_id: rds-databases
+  prompt: "Which AWS database service is a fully managed, serverless NoSQL key-value store (not part of RDS) that offers single-digit millisecond performance?"
+  options: ["Amazon Aurora", "Amazon DynamoDB", "Amazon RDS for PostgreSQL", "Amazon Redshift"]
+  correct_answer: "Amazon DynamoDB"
+  difficulty: "medium"
+  explanation: "Amazon DynamoDB is a fully managed, serverless NoSQL database delivering consistent single-digit millisecond latency at any scale; it is separate from RDS."
+  status: "published"
+
+- skill_id: rds-databases
+  prompt: "What does RDS automated backup with point-in-time recovery allow you to do?"
+  options: ["Restore the database to any second within the retention period", "Only restore to the moment of the last manual snapshot", "Recover data from a different AWS account automatically", "Replicate data to on-premises servers"]
+  correct_answer: "Restore the database to any second within the retention period"
+  difficulty: "hard"
+  explanation: "RDS automated backups capture transaction logs, enabling point-in-time recovery to any second within the configured retention window (up to 35 days)."
+  status: "published"
+
+# =========================================================================== #
+# Domain: Billing and Pricing
+# =========================================================================== #
+
+# --- Skill: cost-explorer --------------------------------------------------- #
+- skill_id: cost-explorer
+  prompt: "Which AWS tool provides highly granular visualizations of cost and usage patterns over time?"
+  options: ["AWS Budgets", "AWS Cost Explorer", "AWS Trusted Advisor", "AWS Config"]
+  correct_answer: "AWS Cost Explorer"
+  difficulty: "easy"
+  explanation: "AWS Cost Explorer is the primary tool for visualizing, understanding, and analyzing your historical and forecasted AWS costs and usage."
+  status: "published"
+
+- skill_id: cost-explorer
+  prompt: "Up to how far back can AWS Cost Explorer display your historical cost and usage data?"
+  options: ["3 months", "6 months", "12 months", "24 months"]
+  correct_answer: "12 months"
+  difficulty: "medium"
+  explanation: "Cost Explorer lets you view up to the last 12 months of historical data and also forecasts up to 12 months ahead."
+  status: "published"
+
+- skill_id: cost-explorer
+  prompt: "A startup notices a cost spike and wants to identify which service is responsible. How can Cost Explorer help?"
+  options: ["By blocking the service automatically", "By filtering and grouping costs by service to pinpoint the source", "By deleting unused resources", "By sending an SMS alert"]
+  correct_answer: "By filtering and grouping costs by service to pinpoint the source"
+  difficulty: "medium"
+  explanation: "Cost Explorer lets you filter and group spend by dimensions such as service, Region, or tag, making it easy to identify the source of a cost spike."
+  status: "published"
+
+- skill_id: cost-explorer
+  prompt: "Which feature of Cost Explorer helps you estimate future spending based on past usage?"
+  options: ["Cost forecasting", "Reserved Instance purchase", "Trusted Advisor checks", "S3 Inventory"]
+  correct_answer: "Cost forecasting"
+  difficulty: "medium"
+  explanation: "Cost Explorer can forecast future costs (up to 12 months) based on your historical usage trends, helping with planning."
+  status: "published"
+
+- skill_id: cost-explorer
+  prompt: "Which mechanism in AWS allows you to attach metadata key-value pairs to resources so that Cost Explorer can break costs down by team or project?"
+  options: ["IAM policies", "Cost allocation tags", "Security groups", "VPC flow logs"]
+  correct_answer: "Cost allocation tags"
+  difficulty: "hard"
+  explanation: "Cost allocation tags let you label resources (e.g., by project or department); once activated, Cost Explorer and reports can group costs by those tags."
+  status: "published"
+
+- skill_id: cost-explorer
+  prompt: "Which detailed report provides the most comprehensive, line-item data about your AWS costs and usage, suitable for ingestion into analytics tools?"
+  options: ["AWS Cost & Usage Report (CUR)", "AWS Budgets dashboard", "Trusted Advisor summary", "The EC2 console"]
+  correct_answer: "AWS Cost & Usage Report (CUR)"
+  difficulty: "hard"
+  explanation: "The AWS Cost & Usage Report is the most granular cost data source, with hourly line items you can load into Amazon Athena, Redshift, or QuickSight."
+  status: "published"
+
+# --- Skill: budgets-alerts -------------------------------------------------- #
+- skill_id: budgets-alerts
+  prompt: "What is the primary purpose of AWS Budgets?"
+  options: ["To visualize past costs in charts", "To set custom cost or usage thresholds and receive alerts when they are exceeded", "To provision new EC2 instances", "To encrypt billing data"]
+  correct_answer: "To set custom cost or usage thresholds and receive alerts when they are exceeded"
+  difficulty: "easy"
+  explanation: "AWS Budgets lets you define cost, usage, RI, or Savings Plans budgets and sends alerts when actual or forecasted values cross your thresholds."
+  status: "published"
+
+- skill_id: budgets-alerts
+  prompt: "AWS Budgets can send notifications through which of the following?"
+  options: ["Email and Amazon SNS topics", "Only physical mail", "Only the AWS mobile app", "FTP upload"]
+  correct_answer: "Email and Amazon SNS topics"
+  difficulty: "medium"
+  explanation: "Budget alerts can notify you via email and via Amazon SNS topics, which can in turn trigger automation such as Lambda functions."
+  status: "published"
+
+- skill_id: budgets-alerts
+  prompt: "Which type of AWS budget alert warns you BEFORE month-end that you are projected to exceed your limit?"
+  options: ["An actual-cost alert", "A forecasted-cost alert", "A snapshot alert", "A reservation alert"]
+  correct_answer: "A forecasted-cost alert"
+  difficulty: "hard"
+  explanation: "A forecasted budget alert triggers when AWS predicts you will exceed the budget by the end of the period, giving you time to act before it actually happens."
+  status: "published"
+
+- skill_id: budgets-alerts
+  prompt: "Which free AWS feature simply alerts you when your estimated charges exceed a single threshold you set, using a CloudWatch alarm?"
+  options: ["A billing alarm (estimated charges)", "AWS Trusted Advisor", "AWS Config rule", "Amazon Inspector"]
+  correct_answer: "A billing alarm (estimated charges)"
+  difficulty: "medium"
+  explanation: "You can create a CloudWatch billing alarm on the EstimatedCharges metric to be notified when your estimated AWS bill exceeds a chosen amount."
+  status: "published"
+
+- skill_id: budgets-alerts
+  prompt: "Which advanced AWS Budgets capability can automatically take an action, such as applying a restrictive IAM policy, when a budget threshold is breached?"
+  options: ["Budget Actions", "Cost Explorer forecasting", "Trusted Advisor", "S3 Lifecycle rules"]
+  correct_answer: "Budget Actions"
+  difficulty: "hard"
+  explanation: "AWS Budgets Actions can automatically respond to a breached budget, for example by applying an IAM/SCP policy or stopping EC2/RDS instances to control spend."
+  status: "published"
+
+- skill_id: budgets-alerts
+  prompt: "A finance team wants to be notified as soon as monthly spend reaches 80% of the planned amount. Which AWS service should they configure?"
+  options: ["AWS Budgets", "AWS CloudTrail", "Amazon GuardDuty", "AWS Artifact"]
+  correct_answer: "AWS Budgets"
+  difficulty: "easy"
+  explanation: "AWS Budgets lets you set a percentage threshold (e.g., 80%) of a cost budget and receive an alert when actual or forecasted spend reaches it."
   status: "published"

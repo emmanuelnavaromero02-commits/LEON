@@ -37,6 +37,57 @@ def resolve_certification_id(db: Session, user_id: str, tenant_id: str) -> str:
     return DEFAULT_CERTIFICATION_ID
 
 
+MASTERED_THRESHOLD = 0.8
+
+
+def _mastery_status(mastery: float) -> str:
+    """Skill node status from mastery: 0 -> locked, <0.8 -> in_progress, >=0.8 -> mastered."""
+    if mastery <= 0.0:
+        return "locked"
+    if mastery < MASTERED_THRESHOLD:
+        return "in_progress"
+    return "mastered"
+
+
+def build_skill_tree(db: Session, user_id: str, tenant_id: str, certification_id: str) -> list[dict]:
+    """Build the skill tree for a certification, scoped to the tenant.
+
+    Returns one node per skill of the certification's domains with the user's
+    mastery (0.0 when they have no MasteryScore yet) and a derived status. This
+    is the exact shape the frontend dashboard renders.
+    """
+    skills = (
+        db.query(models.Skill)
+        .join(models.Domain, models.Skill.domain_id == models.Domain.id)
+        .filter(
+            models.Domain.certification_id == certification_id,
+            models.Skill.tenant_id == tenant_id,
+            models.Domain.tenant_id == tenant_id,
+        )
+        .all()
+    )
+
+    mastery_by_skill = {
+        m.skill_id: m.score
+        for m in db.query(models.MasteryScore).filter(
+            models.MasteryScore.user_id == user_id,
+            models.MasteryScore.tenant_id == tenant_id,
+        ).all()
+    }
+
+    tree = []
+    for skill in skills:
+        mastery = mastery_by_skill.get(skill.id, 0.0) or 0.0
+        tree.append({
+            "skill_id": skill.id,
+            "name": skill.name,
+            "domain_id": skill.domain_id,
+            "mastery": mastery,
+            "status": _mastery_status(mastery),
+        })
+    return tree
+
+
 def record_attempt(db: Session, user_id: str, tenant_id: str, certification_id: str,
                    attempt_type: str, question, selected_answer: str, is_correct: bool):
     """Persist a single-answer Attempt so adaptive history (last N answers,
@@ -174,6 +225,8 @@ async def get_dashboard(
     lp_gen = LearningPathGenerator()
     recommendation = lp_gen.get_next_recommendation(db, user_id, tenant_id, cert_id)
 
+    skill_tree = build_skill_tree(db, user_id, tenant_id, cert_id)
+
     return {
         "user_name": user.full_name,
         "certification": "AWS Cloud Practitioner",
@@ -184,6 +237,8 @@ async def get_dashboard(
         # Backwards-compatible string; the structured object lives alongside it.
         "recommendation": recommendation["message"],
         "recommendation_detail": recommendation,
+        # Real skill tree for the target certification, rendered by the frontend.
+        "skill_tree": skill_tree,
     }
 
 @router.get("/lesson/next/{user_id}")
