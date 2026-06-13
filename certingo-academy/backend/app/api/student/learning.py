@@ -3,15 +3,57 @@ from sqlalchemy.orm import Session
 from ...database.db import get_db
 from ...database import models
 from ...schemas import academy as schemas
-from ...services.academy.learning_engine import MasteryEngine, DiagnosticEngine, LearningPathGenerator, ExamGenerator
+from ...services.academy.learning_engine import (
+    MasteryEngine, DiagnosticEngine, LearningPathGenerator, ExamGenerator, AdaptiveSelector,
+)
+from ...services.academy.spaced_repetition_service import SpacedRepetitionService
 from ...services.events.event_service import EventService
 from ...services.audit.audit_service import AuditService
 from ...services.ai.ai_service import AIService
 from ...services.knowledge.knowledge_service import KnowledgeService
 from ..deps import ensure_user_access, get_current_user
+from datetime import datetime
 import uuid
 
 router = APIRouter(tags=["student"])
+
+DEFAULT_CERTIFICATION_ID = "aws-cloud-practitioner"
+
+
+def resolve_certification_id(db: Session, user_id: str, tenant_id: str) -> str:
+    """Target certification from the learner profile, with a safe fallback."""
+    profile = db.query(models.LearnerProfile).filter(
+        models.LearnerProfile.user_id == user_id,
+        models.LearnerProfile.tenant_id == tenant_id,
+    ).first()
+    if profile and profile.target_certification_id:
+        return profile.target_certification_id
+    return DEFAULT_CERTIFICATION_ID
+
+
+def record_attempt(db: Session, user_id: str, tenant_id: str, certification_id: str,
+                   attempt_type: str, question, selected_answer: str, is_correct: bool):
+    """Persist a single-answer Attempt so adaptive history (last N answers,
+    no-repeat) has data to work with. Additive; does not change responses."""
+    attempt = models.Attempt(
+        id=str(uuid.uuid4()),
+        user_id=user_id,
+        tenant_id=tenant_id,
+        certification_id=certification_id,
+        type=attempt_type,
+        score=1.0 if is_correct else 0.0,
+        xp_earned=10 if is_correct else 0,
+    )
+    db.add(attempt)
+    db.flush()  # need attempt.id for the answer row
+    db.add(models.AttemptAnswer(
+        attempt_id=attempt.id,
+        question_id=question.id,
+        selected_answer=selected_answer,
+        is_correct=is_correct,
+    ))
+    db.commit()
+    return attempt
 
 @router.post("/onboarding")
 async def onboarding(
@@ -71,8 +113,9 @@ async def start_diagnostic(
     db: Session = Depends(get_db),
 ):
     ensure_user_access(db, current_user, user_id)
+    cert_id = resolve_certification_id(db, user_id, current_user.tenant_id)
     engine = DiagnosticEngine()
-    questions = engine.generate_diagnostic_test(db, current_user.tenant_id, "aws-cloud-practitioner")
+    questions = engine.generate_diagnostic_test(db, current_user.tenant_id, cert_id)
     return {"questions": [
         {
             "id": q.id,
@@ -117,12 +160,13 @@ async def get_dashboard(
     user = ensure_user_access(db, current_user, user_id)
     tenant_id = current_user.tenant_id
 
+    cert_id = resolve_certification_id(db, user_id, tenant_id)
     mastery = db.query(models.MasteryScore).filter(
         models.MasteryScore.user_id == user_id,
         models.MasteryScore.tenant_id == tenant_id,
     ).all()
     lp_gen = LearningPathGenerator()
-    recommendation = lp_gen.get_next_recommendation(db, user_id, tenant_id, "aws-cloud-practitioner")
+    recommendation = lp_gen.get_next_recommendation(db, user_id, tenant_id, cert_id)
 
     return {
         "user_name": user.full_name,
@@ -131,7 +175,9 @@ async def get_dashboard(
         "xp": user.profile.total_xp if user.profile else 0,
         "streak": user.profile.current_streak if user.profile else 0,
         "mastery_by_skill": {m.skill_id: m.score for m in mastery},
-        "recommendation": recommendation
+        # Backwards-compatible string; the structured object lives alongside it.
+        "recommendation": recommendation["message"],
+        "recommendation_detail": recommendation,
     }
 
 @router.get("/lesson/next/{user_id}")
@@ -143,10 +189,23 @@ async def get_next_lesson(
     user = ensure_user_access(db, current_user, user_id)
     tenant_id = current_user.tenant_id
 
-    # Logic to pick next skill
-    skill = db.query(models.Skill).filter(models.Skill.tenant_id == tenant_id).first() # Simplified
+    cert_id = resolve_certification_id(db, user_id, tenant_id)
+    selector = AdaptiveSelector()
+
+    # Pick the learner's weakest skill (falls back to any cert skill with content).
+    skill_id = selector.get_weakest_skill_id(db, user_id, tenant_id, cert_id)
+    skill = None
+    if skill_id:
+        skill = db.query(models.Skill).filter(
+            models.Skill.id == skill_id,
+            models.Skill.tenant_id == tenant_id,
+        ).first()
+    if skill is None:
+        skill = db.query(models.Skill).filter(models.Skill.tenant_id == tenant_id).first()
     if skill is None:
         raise HTTPException(status_code=404, detail="No skills available yet")
+
+    mastery = selector.get_skill_mastery(db, user_id, tenant_id, skill.id)
 
     ai_service = AIService(db, tenant_id)
     kb_service = KnowledgeService(db)
@@ -156,7 +215,7 @@ async def get_next_lesson(
         user.profile.__dict__ if user.profile else {},
         {"id": skill.id, "name": skill.name},
         source_content,
-        0.5
+        mastery,
     )
     lesson["skill_id"] = skill.id
     return lesson
@@ -181,12 +240,17 @@ async def submit_lesson(
     engine = MasteryEngine()
     audit = AuditService()
     event_bus = EventService(db, audit)
+    cert_id = resolve_certification_id(db, user_id, tenant_id)
 
     # Evaluate the submitted answer against the real correct answer
     is_correct = submission.selected_answer == question.correct_answer
     new_score = engine.update_user_mastery(
         db, user_id, tenant_id, question.skill_id, is_correct, question.difficulty or "medium"
     )
+
+    # Schedule the next spaced-repetition review and log the attempt for history.
+    SpacedRepetitionService(db).record_review(tenant_id, user_id, question, is_correct)
+    record_attempt(db, user_id, tenant_id, cert_id, "lesson", question, submission.selected_answer, is_correct)
 
     event_bus.emit(tenant_id, user_id, "lesson_completed", {"skill_id": question.skill_id, "is_correct": is_correct})
     return {"status": "success", "is_correct": is_correct, "new_mastery": new_score}
@@ -200,25 +264,15 @@ async def get_next_practice(
     ensure_user_access(db, current_user, user_id)
     tenant_id = current_user.tenant_id
 
-    # Find weakest skill
-    mastery = db.query(models.MasteryScore).filter(
-        models.MasteryScore.user_id == user_id,
-        models.MasteryScore.tenant_id == tenant_id,
-    ).order_by(models.MasteryScore.score.asc()).first()
-    skill_id = mastery.skill_id if mastery else None
-
-    query = db.query(models.Question).filter(
-        models.Question.status == "published",
-        models.Question.tenant_id == tenant_id,
-    )
-    if skill_id:
-        query = query.filter(models.Question.skill_id == skill_id)
-
-    question = query.first()
+    cert_id = resolve_certification_id(db, user_id, tenant_id)
+    selector = AdaptiveSelector()
+    question, source = selector.select_question(db, user_id, tenant_id, cert_id)
     if not question:
         raise HTTPException(status_code=404, detail="No questions available")
 
     return {
+        # `source` is additive: "review" for due spaced-repetition items, else "new".
+        "source": source,
         "question": {
             "id": question.id,
             "prompt": question.prompt,
@@ -250,6 +304,7 @@ async def submit_practice(
     engine = MasteryEngine()
     audit = AuditService()
     event_bus = EventService(db, audit)
+    cert_id = resolve_certification_id(db, user_id, tenant_id)
 
     new_score = engine.update_user_mastery(db, user_id, tenant_id, question.skill_id, is_correct, question.difficulty)
 
@@ -262,6 +317,7 @@ async def submit_practice(
         ).first()
         if mistake:
             mistake.count += 1
+            mistake.last_seen = datetime.utcnow()
         else:
             mistake = models.MistakeLog(
                 id=str(uuid.uuid4()),
@@ -273,6 +329,10 @@ async def submit_practice(
             )
             db.add(mistake)
         db.commit()
+
+    # Schedule the next spaced-repetition review and log the attempt for history.
+    SpacedRepetitionService(db).record_review(tenant_id, user_id, question, is_correct)
+    record_attempt(db, user_id, tenant_id, cert_id, "practice", question, submission.selected_answer, is_correct)
 
     # Feedback (AIService falls back to the mock provider if the LLM fails)
     ai_service = AIService(db, tenant_id)
@@ -289,8 +349,9 @@ async def start_exam(
     db: Session = Depends(get_db),
 ):
     ensure_user_access(db, current_user, user_id)
+    cert_id = resolve_certification_id(db, user_id, current_user.tenant_id)
     generator = ExamGenerator()
-    questions = generator.create_exam(db, current_user.tenant_id, "aws-cloud-practitioner")
+    questions = generator.create_exam(db, current_user.tenant_id, cert_id)
     return {
         "exam_id": str(uuid.uuid4()),
         "questions": [

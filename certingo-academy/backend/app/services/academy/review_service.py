@@ -26,11 +26,19 @@ class ReviewModeService:
                 models.LearningBit.status == "published"
             ).all()
 
+            # Spaced-repetition due date for this exact question (if scheduled).
+            schedule = self.db.query(models.ReviewSchedule).filter(
+                models.ReviewSchedule.user_id == user_id,
+                models.ReviewSchedule.tenant_id == tenant_id,
+                models.ReviewSchedule.question_id == m.question_id,
+            ).first()
+
             notebook.append({
                 "skill_id": m.skill_id,
                 "fail_count": m.count,
                 "last_question": question.prompt if question else "Unknown",
-                "review_hints": [b.content for b in bits[:2]]
+                "review_hints": [b.content for b in bits[:2]],
+                "due_at": schedule.due_at.isoformat() if schedule and schedule.due_at else None,
             })
         return notebook
 

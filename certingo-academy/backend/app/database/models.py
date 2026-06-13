@@ -419,3 +419,20 @@ class MasteryScore(Base):
     last_updated = Column(DateTime(timezone=True), onupdate=func.now())
 
     user = relationship("User", back_populates="mastery_scores")
+
+class ReviewSchedule(Base):
+    """Spaced-repetition schedule (SM-2 simplified) per user/question."""
+    __tablename__ = "review_schedules"
+    __table_args__ = (
+        UniqueConstraint("user_id", "question_id", name="uq_review_user_question"),
+    )
+    id = Column(String, primary_key=True, index=True)
+    user_id = Column(String, ForeignKey("users.id"))
+    tenant_id = Column(String, ForeignKey("tenants.id"))
+    question_id = Column(String, ForeignKey("questions.id"))
+    skill_id = Column(String, ForeignKey("skills.id"))
+    repetitions = Column(Integer, default=0)
+    ease_factor = Column(Float, default=2.5)
+    interval_days = Column(Float, default=0.0)
+    due_at = Column(DateTime, index=True)
+    last_reviewed_at = Column(DateTime, nullable=True)
