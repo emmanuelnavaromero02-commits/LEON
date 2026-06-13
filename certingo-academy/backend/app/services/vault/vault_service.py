@@ -117,3 +117,21 @@ class VaultService:
             return None
 
         return self.decrypt(secret.encrypted_value)
+
+    def delete_secret(self, db: Session, tenant_id: str, secret_id: str) -> bool:
+        """Delete a tenant secret by id, scoped to the tenant.
+
+        Returns True if a secret was deleted, False if none matched the
+        tenant/id pair (cross-tenant ids are treated as not found).
+        """
+        secret = db.query(models.TenantSecret).filter(
+            models.TenantSecret.id == secret_id,
+            models.TenantSecret.tenant_id == tenant_id,
+        ).first()
+
+        if not secret:
+            return False
+
+        db.delete(secret)
+        db.commit()
+        return True

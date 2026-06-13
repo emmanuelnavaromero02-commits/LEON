@@ -56,3 +56,31 @@ async def fetch_mcp_tools(
     audit = AuditService()
     service = MCPRegistryService(db, audit)
     return await service.fetch_tools(server_id)
+
+
+@router.delete("/servers/{server_id}")
+async def delete_mcp_server(
+    server_id: str,
+    current_user: models.User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Delete an MCP server of the current tenant. 404 when cross-tenant/missing."""
+    server = db.query(models.MCPServer).filter(
+        models.MCPServer.id == server_id,
+        models.MCPServer.tenant_id == current_user.tenant_id,
+    ).first()
+    if server is None:
+        raise HTTPException(status_code=404, detail="MCP server not found")
+
+    db.delete(server)
+    db.commit()
+
+    AuditService().log(
+        db,
+        current_user.tenant_id,
+        current_user.id,
+        "mcp_server_deleted",
+        "MCPServer",
+        server_id,
+    )
+    return {"status": "deleted", "id": server_id}

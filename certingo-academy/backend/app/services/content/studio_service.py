@@ -34,3 +34,18 @@ class ContentStudioService:
                 resource.reviewed_by = reviewer_id
             self.db.commit()
         return resource
+
+    def reject_content(self, resource_type: str, resource_id: str, reviewer_id: str):
+        """Move a content resource to the rejected status. Symmetric to approve_content."""
+        model_map = {
+            "Lesson": models.Lesson,
+            "Question": models.Question,
+            "LearningBit": models.LearningBit
+        }
+        resource = self.db.query(model_map[resource_type]).filter(model_map[resource_type].id == resource_id).first()
+        if resource:
+            resource.status = models.ContentStatus.REJECTED
+            if hasattr(resource, 'reviewed_by'):
+                resource.reviewed_by = reviewer_id
+            self.db.commit()
+        return resource

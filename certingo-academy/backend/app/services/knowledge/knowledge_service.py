@@ -7,6 +7,43 @@ class KnowledgeService:
     def __init__(self, db: Session):
         self.db = db
 
+    def get_or_create_default_kb(self, tenant_id: str) -> models.KnowledgeBase:
+        """Return the tenant's knowledge base, creating a default one lazily."""
+        kb = self.db.query(models.KnowledgeBase).filter(
+            models.KnowledgeBase.tenant_id == tenant_id
+        ).first()
+        if kb is None:
+            kb = models.KnowledgeBase(
+                id=str(uuid.uuid4()),
+                tenant_id=tenant_id,
+                name="Default Knowledge Base",
+            )
+            self.db.add(kb)
+            self.db.commit()
+            self.db.refresh(kb)
+        return kb
+
+    def delete_document(self, tenant_id: str, document_id: str) -> bool:
+        """Delete a document and its chunks, scoped to the tenant.
+
+        Returns True if a document was deleted, False if none matched the
+        tenant/id pair (cross-tenant ids are treated as not found).
+        """
+        document = self.db.query(models.KnowledgeDocument).filter(
+            models.KnowledgeDocument.id == document_id,
+            models.KnowledgeDocument.tenant_id == tenant_id,
+        ).first()
+        if document is None:
+            return False
+
+        self.db.query(models.KnowledgeChunk).filter(
+            models.KnowledgeChunk.document_id == document_id,
+            models.KnowledgeChunk.tenant_id == tenant_id,
+        ).delete(synchronize_session=False)
+        self.db.delete(document)
+        self.db.commit()
+        return True
+
     def chunk_document(self, document: models.KnowledgeDocument):
         # Simple chunking by paragraph for now
         content = document.content

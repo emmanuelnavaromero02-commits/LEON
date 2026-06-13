@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from ...database.db import get_db
 from ...database import models
 from ...services.vault.vault_service import VaultService
+from ...services.audit.audit_service import AuditService
 from ..deps import require_role
 
 require_admin = require_role(models.UserRole.TENANT_ADMIN, models.UserRole.SUPER_ADMIN)
@@ -53,3 +54,26 @@ async def create_secret(
     vault = VaultService()
     vault.set_secret(db, current_user.tenant_id, data.key, data.value, current_user.id)
     return {"status": "success"}
+
+
+@router.delete("/{secret_id}")
+async def delete_secret(
+    secret_id: str,
+    current_user: models.User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Delete a tenant secret. 404 when missing or owned by another tenant."""
+    vault = VaultService()
+    deleted = vault.delete_secret(db, current_user.tenant_id, secret_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Secret not found")
+
+    AuditService().log(
+        db,
+        current_user.tenant_id,
+        current_user.id,
+        "secret_deleted",
+        "TenantSecret",
+        secret_id,
+    )
+    return {"status": "deleted", "id": secret_id}

@@ -5,7 +5,7 @@ from .middleware.request_id import RequestIDMiddleware
 from .core.logging import setup_logging
 from .database.db import engine, Base
 from .api import auth
-from .api.admin import audit, secrets, mcp, marketplace, control_room, content_studio, ai_studio
+from .api.admin import audit, secrets, mcp, marketplace, control_room, content_studio, ai_studio, knowledge_base
 from .api.student import learning, stats
 
 setup_logging()
@@ -33,6 +33,7 @@ app.include_router(marketplace.router, prefix="/api/admin")
 app.include_router(control_room.router, prefix="/api/admin")
 app.include_router(content_studio.router, prefix="/api/admin")
 app.include_router(ai_studio.router, prefix="/api/admin")
+app.include_router(knowledge_base.router, prefix="/api/admin")
 
 # Student Routers
 app.include_router(learning.router, prefix="/api/academy")
