@@ -15,10 +15,14 @@ class ReviewModeService:
 
         notebook = []
         for m in mistakes:
-            question = self.db.query(models.Question).filter(models.Question.id == m.question_id).first()
+            question = self.db.query(models.Question).filter(
+                models.Question.id == m.question_id,
+                models.Question.tenant_id == tenant_id
+            ).first()
             # Fetch relevant learning bits for this skill to help review
             bits = self.db.query(models.LearningBit).filter(
                 models.LearningBit.skill_id == m.skill_id,
+                models.LearningBit.tenant_id == tenant_id,
                 models.LearningBit.status == "published"
             ).all()
 
@@ -34,12 +38,16 @@ class ReviewModeService:
         # Skills with mastery < 0.5
         weak_mastery = self.db.query(models.MasteryScore).filter(
             models.MasteryScore.user_id == user_id,
+            models.MasteryScore.tenant_id == tenant_id,
             models.MasteryScore.score < 0.5
         ).all()
 
         topics = []
         for m in weak_mastery:
-            skill = self.db.query(models.Skill).filter(models.Skill.id == m.skill_id).first()
+            skill = self.db.query(models.Skill).filter(
+                models.Skill.id == m.skill_id,
+                models.Skill.tenant_id == tenant_id
+            ).first()
             if skill:
                 topics.append({"id": skill.id, "name": skill.name, "score": m.score})
         return topics

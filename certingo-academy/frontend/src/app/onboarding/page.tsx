@@ -2,16 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ArrowLeft, Check, Sparkles, ChevronRight } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowRight, ArrowLeft, Check, Sparkles, ChevronRight, AlertCircle } from 'lucide-react';
 import { academyApi } from '@/lib/api';
+import type { OnboardingPayload } from '@/types/auth';
 
+// Identity (name/email) now comes from registration — onboarding only builds
+// the learning profile for the authenticated user.
 const STEPS = [
-  {
-    id: 'intro',
-    title: 'Let\'s build your profile',
-    description: 'Tell us a bit about yourself to personalize your learning journey.',
-  },
   {
     id: 'certification',
     title: 'What are you aiming for?',
@@ -37,9 +35,7 @@ const STEPS = [
 export default function OnboardingPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState({
-    full_name: '',
-    email: '',
+  const [formData, setFormData] = useState<OnboardingPayload>({
     target_certification_id: 'aws-cloud-practitioner',
     background: 'no-technical',
     preferred_style: 'simple-analogies',
@@ -48,6 +44,7 @@ export default function OnboardingPage() {
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const nextStep = () => {
     if (currentStep < STEPS.length - 1) {
@@ -65,12 +62,22 @@ export default function OnboardingPage() {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    setSubmitError(null);
     try {
+      // The user is identified by the bearer token — no user fields in the body.
       const response = await academyApi.onboarding(formData);
-      localStorage.setItem('certingo_user_id', response.data.user_id);
-      router.push('/diagnostic');
-    } catch (error) {
-      console.error('Onboarding failed', error);
+      if (response.data?.user_id) {
+        // Legacy key still read by existing pages.
+        localStorage.setItem('certingo_user_id', response.data.user_id);
+      }
+      router.push('/dashboard');
+    } catch (error: any) {
+      const detail = error?.response?.data?.detail;
+      setSubmitError(
+        typeof detail === 'string' && detail
+          ? detail
+          : 'We could not save your profile. Please try again.'
+      );
       setIsSubmitting(false);
     }
   };
@@ -104,31 +111,6 @@ export default function OnboardingPage() {
 
           <div className="space-y-6 min-h-[250px]">
             {currentStep === 0 && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-bold mb-2 uppercase tracking-wider text-gray-400">Full Name</label>
-                  <input
-                    type="text"
-                    className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
-                    placeholder="Enter your name"
-                    value={formData.full_name}
-                    onChange={(e) => setFormData({...formData, full_name: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-bold mb-2 uppercase tracking-wider text-gray-400">Email Address</label>
-                  <input
-                    type="email"
-                    className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl focus:outline-none focus:ring-2 focus:ring-black/5 transition-all"
-                    placeholder="you@example.com"
-                    value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                  />
-                </div>
-              </div>
-            )}
-
-            {currentStep === 1 && (
               <div className="grid grid-cols-1 gap-3">
                 {[
                   { id: 'aws-cloud-practitioner', label: 'AWS Cloud Practitioner', icon: '☁️' },
@@ -154,7 +136,7 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {currentStep === 2 && (
+            {currentStep === 1 && (
               <div className="grid grid-cols-1 gap-3">
                 {[
                   { id: 'no-technical', label: 'Non-Technical / Business', desc: 'Marketing, Sales, Management' },
@@ -178,7 +160,7 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {currentStep === 3 && (
+            {currentStep === 2 && (
               <div className="grid grid-cols-1 gap-3">
                 {[
                   { id: 'simple-analogies', label: 'Simple Analogies', desc: "Explain like I'm five" },
@@ -202,7 +184,7 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {currentStep === 4 && (
+            {currentStep === 3 && (
               <div className="space-y-8">
                 <div>
                   <div className="flex justify-between mb-4">
@@ -239,6 +221,13 @@ export default function OnboardingPage() {
             )}
           </div>
 
+          {submitError && (
+            <div className="mt-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-start space-x-3">
+              <AlertCircle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+              <p className="text-xs text-red-600 leading-relaxed">{submitError}</p>
+            </div>
+          )}
+
           <div className="mt-12 flex items-center justify-between">
             <button
               onClick={prevStep}
@@ -250,7 +239,7 @@ export default function OnboardingPage() {
             </button>
             <button
               onClick={nextStep}
-              disabled={isSubmitting || (currentStep === 0 && (!formData.full_name || !formData.email))}
+              disabled={isSubmitting}
               className="bg-black text-white px-8 py-4 rounded-full font-bold flex items-center hover:bg-gray-800 transition-all disabled:bg-gray-200"
             >
               {isSubmitting ? 'Initializing...' : currentStep === STEPS.length - 1 ? 'Start Learning' : 'Next Step'}

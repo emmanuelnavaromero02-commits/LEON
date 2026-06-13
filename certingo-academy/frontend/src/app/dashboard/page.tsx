@@ -7,18 +7,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard, BookOpen, GraduationCap, Trophy,
   Settings, Zap, Sparkles, ChevronRight, Lock,
-  CheckCircle, Target, AlertCircle, History, Notebook
+  CheckCircle, Target, AlertCircle, History, Notebook, LogOut
 } from 'lucide-react';
 import { academyApi } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { user, logout } = useAuth();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const id = localStorage.getItem('certingo_user_id');
-    if (!id) { router.push('/onboarding'); return; }
+    if (!id) { router.push('/login'); return; }
 
     const fetchDashboard = async () => {
       try {
@@ -77,13 +79,20 @@ export default function DashboardPage() {
               <span>Admin Console</span>
            </Link>
            <div className="mt-4 p-4 bg-white/5 rounded-2xl flex items-center space-x-3">
-              <div className="w-8 h-8 bg-indigo-500/20 rounded-full flex items-center justify-center text-indigo-400 font-bold text-xs uppercase">
-                 {data.user_name?.[0]}
+              <div className="w-8 h-8 bg-indigo-500/20 rounded-full flex items-center justify-center text-indigo-400 font-bold text-xs uppercase shrink-0">
+                 {(user?.full_name || data.user_name)?.[0]}
               </div>
               <div className="flex-1 min-w-0">
-                 <p className="text-xs font-bold truncate">{data.user_name}</p>
-                 <p className="text-[10px] text-white/30 uppercase font-black tracking-widest">Free Student</p>
+                 <p className="text-xs font-bold truncate">{user?.full_name || data.user_name}</p>
+                 <p className="text-[10px] text-white/30 truncate">{user?.email || 'Student'}</p>
               </div>
+              <button
+                onClick={logout}
+                title="Log out"
+                className="p-2 rounded-lg text-white/30 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+              >
+                 <LogOut className="w-4 h-4" />
+              </button>
            </div>
         </div>
       </aside>

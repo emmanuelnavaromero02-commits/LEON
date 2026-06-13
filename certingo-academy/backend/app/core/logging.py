@@ -1,13 +1,16 @@
 import logging
 import sys
-from fastapi import Request
+
+LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - [RID: %(request_id)s] - %(message)s'
 
 def setup_logging():
-    logging.basicConfig(
-        stream=sys.stdout,
-        level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - [RID: %(request_id)s] - %(message)s'
-    )
+    handler = logging.StreamHandler(sys.stdout)
+    # `defaults` ensures records emitted by third-party libs (without a
+    # request_id attribute) do not blow up the formatter.
+    handler.setFormatter(logging.Formatter(LOG_FORMAT, defaults={"request_id": "GLOBAL"}))
+    root = logging.getLogger()
+    root.setLevel(logging.INFO)
+    root.handlers = [handler]
 
 class RequestIDFilter(logging.Filter):
     def filter(self, record):

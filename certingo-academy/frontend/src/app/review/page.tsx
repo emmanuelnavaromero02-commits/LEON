@@ -13,7 +13,7 @@ export default function MistakesNotebookPage() {
 
   useEffect(() => {
     const id = localStorage.getItem('certingo_user_id');
-    if (!id) { router.push('/onboarding'); return; }
+    if (!id) { router.push('/login'); return; }
 
     const fetchNotebook = async () => {
       try {

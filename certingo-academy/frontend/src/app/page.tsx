@@ -18,10 +18,10 @@ export default function LandingPage() {
           <Link href="/admin" className="hover:text-black transition-colors">Admin</Link>
         </div>
         <Link
-          href="/onboarding"
+          href="/login"
           className="bg-black text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-gray-800 transition-colors"
         >
-          Start Demo
+          Sign In
         </Link>
       </nav>
 
@@ -44,7 +44,7 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
             <Link
-              href="/onboarding"
+              href="/login"
               className="group bg-black text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-gray-800 transition-all flex items-center"
             >
               Get Started

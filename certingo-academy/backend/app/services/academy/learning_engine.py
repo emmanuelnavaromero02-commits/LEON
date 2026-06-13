@@ -32,7 +32,10 @@ class MasteryEngine:
 class DiagnosticEngine:
     def generate_diagnostic_test(self, db: Session, tenant_id: str, certification_id: str, num_questions: int = 10):
         # Pick balanced set across domains
-        domains = db.query(Domain).filter(Domain.certification_id == certification_id).all()
+        domains = db.query(Domain).filter(
+            Domain.certification_id == certification_id,
+            Domain.tenant_id == tenant_id
+        ).all()
         if not domains: return []
 
         questions_per_domain = max(1, num_questions // len(domains))
@@ -41,6 +44,7 @@ class DiagnosticEngine:
         for d in domains:
             q_domain = db.query(Question).join(Skill).filter(
                 Skill.domain_id == d.id,
+                Question.tenant_id == tenant_id,
                 Question.status == "published"
             ).limit(questions_per_domain).all()
             all_questions.extend(q_domain)
@@ -58,7 +62,10 @@ class LearningPathGenerator:
             return "Start with Cloud Fundamentals to build your base."
 
         weakest = min(mastery_scores, key=lambda m: m.score)
-        skill = db.query(Skill).filter(Skill.id == weakest.skill_id).first()
+        skill = db.query(Skill).filter(
+            Skill.id == weakest.skill_id,
+            Skill.tenant_id == tenant_id
+        ).first()
         if skill and weakest.score < 0.8:
             return f"You're struggling with {skill.name}. Let's do a quick recap."
 
@@ -66,7 +73,10 @@ class LearningPathGenerator:
 
 class ExamGenerator:
     def create_exam(self, db: Session, tenant_id: str, certification_id: str, num_questions: int = 20):
-        domains = db.query(Domain).filter(Domain.certification_id == certification_id).all()
+        domains = db.query(Domain).filter(
+            Domain.certification_id == certification_id,
+            Domain.tenant_id == tenant_id
+        ).all()
         if not domains: return []
 
         all_questions = []
@@ -77,6 +87,7 @@ class ExamGenerator:
 
             q_domain = db.query(Question).join(Skill).filter(
                 Skill.domain_id == d.id,
+                Question.tenant_id == tenant_id,
                 Question.status == "published"
             ).all()
 

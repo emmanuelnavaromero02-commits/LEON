@@ -1,5 +1,6 @@
 from .db import SessionLocal
 from .models import User, LearnerProfile, UserRole, Tenant, MasteryScore
+from ..core.security import hash_password
 import uuid
 
 def seed_user():
@@ -15,7 +16,8 @@ def seed_user():
             tenant_id=tenant_id,
             email="evidence@certingo.com",
             full_name="Evidence Tester",
-            role=UserRole.STUDENT
+            role=UserRole.STUDENT,
+            hashed_password=hash_password("evidence123")
         )
         db.add(user)
 
