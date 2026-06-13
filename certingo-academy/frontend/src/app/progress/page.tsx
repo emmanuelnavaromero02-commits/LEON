@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Target, BarChart3, TrendingUp, AlertTriangle, CheckCircle, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import { academyApi } from '@/lib/api';
+import type { ReadinessStats } from '@/types/api';
 
 export default function ReadinessDashboardPage() {
   const router = useRouter();
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<ReadinessStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -93,7 +94,7 @@ export default function ReadinessDashboardPage() {
               <span>Domain Proficiency</span>
            </h3>
            <div className="space-y-6">
-              {Object.entries(stats.domain_breakdown).map(([name, score]: [string, any]) => (
+              {Object.entries(stats.domain_breakdown).map(([name, score]) => (
                  <div key={name}>
                     <div className="flex justify-between items-end mb-2">
                        <span className="text-sm font-bold">{name}</span>

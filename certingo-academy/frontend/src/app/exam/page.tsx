@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Shield, Clock, AlertTriangle, ArrowRight, Trophy } from 'lucide-react';
 import { academyApi } from '@/lib/api';
+import type { PracticeQuestion } from '@/types/api';
 
 export default function ExamPage() {
   const router = useRouter();
-  const [questions, setQuestions] = useState<any[]>([]);
+  const [questions, setQuestions] = useState<PracticeQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -64,7 +65,7 @@ export default function ExamPage() {
   if (showResults) {
     const score = Object.entries(answers).filter(([qid, ans]) => {
       const q = questions.find(q => q.id === qid);
-      return q.correct_answer === ans;
+      return q?.correct_answer === ans;
     }).length;
     const percentage = (score / questions.length) * 100;
 

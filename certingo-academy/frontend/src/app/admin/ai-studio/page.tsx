@@ -8,6 +8,8 @@ import {
   Settings
 } from 'lucide-react';
 import { academyApi } from '@/lib/api';
+import { getErrorMessage } from '@/lib/errors';
+import type { AIGenerationOutput } from '@/types/api';
 
 const SKILLS = [
   { id: 'shared-responsibility-model', name: 'Shared Responsibility Model' },
@@ -33,7 +35,7 @@ export default function AIStudioPage() {
   const [prompt, setPrompt] = useState('Generate a lesson about Shared Responsibility Model for a business profile student...');
   const [provider, setProvider] = useState<string | null>(null);
   const [model, setModel] = useState<string | null>(null);
-  const [output, setOutput] = useState<any>(null);
+  const [output, setOutput] = useState<AIGenerationOutput | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -49,11 +51,11 @@ export default function AIStudioPage() {
       setOutput(res.data.output);
       setProvider(res.data.provider ?? null);
       setModel(res.data.model ?? null);
-    } catch (err: any) {
+    } catch (err) {
       setOutput(null);
       setProvider(null);
       setModel(null);
-      setError(err?.response?.data?.detail || err?.message || 'Generation failed. Please try again.');
+      setError(getErrorMessage(err, 'Generation failed. Please try again.'));
     } finally {
       setLoading(false);
     }

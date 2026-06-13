@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, ArrowRight, Lightbulb, Sparkles, AlertCircle, Info, TriangleAlert, BrainCircuit } from 'lucide-react';
 import { academyApi } from '@/lib/api';
+import type { Lesson } from '@/types/api';
 
 export default function LearnPage() {
   const router = useRouter();
-  const [lesson, setLesson] = useState<any>(null);
+  const [lesson, setLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -29,7 +30,7 @@ export default function LearnPage() {
   }, []);
 
   const handleSubmit = async () => {
-    if (!selectedOption) return;
+    if (!selectedOption || !lesson) return;
     const correct = selectedOption === lesson.question.correct_answer;
     setIsCorrect(correct);
     setIsSubmitted(true);

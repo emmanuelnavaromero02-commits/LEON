@@ -11,11 +11,12 @@ import {
 } from 'lucide-react';
 import { academyApi } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import type { DashboardData } from '@/types/api';
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, logout } = useAuth();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

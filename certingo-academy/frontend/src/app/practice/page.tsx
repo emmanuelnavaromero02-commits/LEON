@@ -5,13 +5,14 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, ArrowRight, Sparkles, AlertCircle, Zap } from 'lucide-react';
 import { academyApi } from '@/lib/api';
+import type { NextPracticeResponse, PracticeResult } from '@/types/api';
 
 export default function PracticePage() {
   const router = useRouter();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<NextPracticeResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<PracticeResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -38,7 +39,7 @@ export default function PracticePage() {
   };
 
   const handleSubmit = async () => {
-    if (!selectedOption || isSubmitting) return;
+    if (!selectedOption || isSubmitting || !data) return;
     setIsSubmitting(true);
     const id = localStorage.getItem('certingo_user_id');
     try {

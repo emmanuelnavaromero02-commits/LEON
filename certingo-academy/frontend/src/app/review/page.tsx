@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Notebook, AlertCircle, RefreshCw, ChevronRight, BookOpen, Sparkles } from 'lucide-react';
 import { academyApi } from '@/lib/api';
+import type { NotebookEntry } from '@/types/api';
 
 export default function MistakesNotebookPage() {
   const router = useRouter();
-  const [notebook, setNotebook] = useState<any[]>([]);
+  const [notebook, setNotebook] = useState<NotebookEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
