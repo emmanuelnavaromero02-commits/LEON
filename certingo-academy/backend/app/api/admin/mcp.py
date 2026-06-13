@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
-from ...database.db import get_db
+
 from ...database import models
-from ...services.mcp.registry_service import MCPRegistryService
+from ...database.db import get_db
 from ...services.audit.audit_service import AuditService
+from ...services.mcp.registry_service import MCPRegistryService
 from ..deps import require_role
 
 require_admin = require_role(models.UserRole.TENANT_ADMIN, models.UserRole.SUPER_ADMIN)

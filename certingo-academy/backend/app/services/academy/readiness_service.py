@@ -1,6 +1,9 @@
-from sqlalchemy.orm import Session
-from ...database import models
 import math
+
+from sqlalchemy.orm import Session
+
+from ...database import models
+
 
 class ReadinessScoreService:
     def __init__(self, db: Session):

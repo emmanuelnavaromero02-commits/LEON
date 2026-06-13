@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from ...database.db import get_db
+
 from ...database import models
+from ...database.db import get_db
 from ...services.ai.ai_service import AIService
 from ...services.knowledge.knowledge_service import KnowledgeService
 from ..deps import require_role

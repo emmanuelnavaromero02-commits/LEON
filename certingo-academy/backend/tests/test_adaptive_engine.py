@@ -12,10 +12,9 @@ import pytest
 
 from app.database import models
 from app.services.academy.learning_engine import AdaptiveSelector, LearningPathGenerator
-from app.services.academy.spaced_repetition_service import SpacedRepetitionService
 from app.services.academy.mission_service import DailyMissionService
+from app.services.academy.spaced_repetition_service import SpacedRepetitionService
 from tests.conftest import auth_headers
-
 
 CERT_ID = "aws-cloud-practitioner"
 
@@ -238,7 +237,7 @@ def test_recent_answers_are_tenant_scoped(db, users):
 def test_due_review_takes_priority_over_new(db, users):
     student = users["student1"]
     skill = _build_cert_tree(db, student.tenant_id)
-    new_q = _add_question(db, student.tenant_id, skill.id, difficulty="easy")
+    _add_question(db, student.tenant_id, skill.id, difficulty="easy")
     due_q = _add_question(db, student.tenant_id, skill.id, difficulty="hard")
     _set_mastery(db, student.id, student.tenant_id, skill.id, 0.1)  # would normally pick easy
 
@@ -258,7 +257,7 @@ def test_due_review_takes_priority_over_new(db, users):
 def test_future_review_not_served_as_review(db, users):
     student = users["student1"]
     skill = _build_cert_tree(db, student.tenant_id)
-    new_q = _add_question(db, student.tenant_id, skill.id, difficulty="easy")
+    _add_question(db, student.tenant_id, skill.id, difficulty="easy")
     later_q = _add_question(db, student.tenant_id, skill.id, difficulty="hard")
     _set_mastery(db, student.id, student.tenant_id, skill.id, 0.1)
 
@@ -530,7 +529,7 @@ def test_missions_include_due_reviews(db, users, make_question):
     student = users["student1"]
     skill = _build_cert_tree(db, student.tenant_id)
     _set_mastery(db, student.id, student.tenant_id, skill.id, 0.3)
-    q = _add_question(db, student.tenant_id, skill.id)
+    _add_question(db, student.tenant_id, skill.id)
     # Two overdue reviews.
     for _ in range(2):
         db.add(models.ReviewSchedule(

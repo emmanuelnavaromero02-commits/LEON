@@ -9,7 +9,6 @@ import uuid
 from app.database import models
 from tests.conftest import auth_headers
 
-
 # --- helpers -----------------------------------------------------------------
 
 def _create_secret(client, admin, key="OPENAI_API_KEY", value="sk-aaaaaaaa1111"):

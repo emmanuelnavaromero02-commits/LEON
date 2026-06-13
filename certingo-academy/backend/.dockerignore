@@ -1,0 +1,38 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local databases / secrets
+*.db
+*.sqlite
+*.sqlite3
+certingo.db
+.field_key
+.env
+.env.*
+
+# Python caches
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+*.egg-info/
+
+# Tests are not needed in the runtime image
+tests/
+
+# Dev tooling
+requirements-dev.txt
+
+# VCS / editor / OS noise
+.git/
+.gitignore
+.idea/
+.vscode/
+.DS_Store
+
+# Docs / misc
+*.md

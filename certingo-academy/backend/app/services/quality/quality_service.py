@@ -1,12 +1,13 @@
 from sqlalchemy.orm import Session
+
 from ...database import models
+
 
 class ContentQualityService:
     def __init__(self, db: Session):
         self.db = db
 
     def get_certification_readiness(self, tenant_id: str, certification_id: str):
-        domains = self.db.query(models.Domain).filter(models.Domain.certification_id == certification_id).all()
         skills = self.db.query(models.Skill).join(models.Domain).filter(models.Domain.certification_id == certification_id).all()
 
         total_skills = len(skills)

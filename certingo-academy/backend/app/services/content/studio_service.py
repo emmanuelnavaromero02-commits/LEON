@@ -1,6 +1,9 @@
-from sqlalchemy.orm import Session
-from ...database import models
 import uuid
+
+from sqlalchemy.orm import Session
+
+from ...database import models
+
 
 class ContentStudioService:
     def __init__(self, db: Session):

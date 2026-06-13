@@ -1,8 +1,11 @@
-import httpx
 import uuid
+
+import httpx
 from sqlalchemy.orm import Session
+
 from ...database import models
 from ..audit.audit_service import AuditService
+
 
 class MCPRegistryService:
     def __init__(self, db: Session, audit: AuditService):
@@ -52,8 +55,6 @@ class MCPRegistryService:
             "role": role,
             "source": "certingo-backend"
         }
-
-        start_time = 1000 # Mock time
 
         async with httpx.AsyncClient() as client:
             payload = {

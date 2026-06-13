@@ -1,7 +1,10 @@
-from sqlalchemy.orm import Session
-from ...database import models
-from typing import List, Optional
 import uuid
+from typing import List
+
+from sqlalchemy.orm import Session
+
+from ...database import models
+
 
 class KnowledgeService:
     def __init__(self, db: Session):

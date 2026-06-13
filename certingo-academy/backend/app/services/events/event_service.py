@@ -1,7 +1,8 @@
+
 from sqlalchemy.orm import Session
-from ..academy.learning_engine import MasteryEngine
+
 from ..audit.audit_service import AuditService
-import uuid
+
 
 class EventService:
     def __init__(self, db: Session, audit: AuditService):

@@ -1,5 +1,6 @@
 from app.services.academy.learning_engine import MasteryEngine
 
+
 def test_mastery_calculation_increase():
     engine = MasteryEngine()
     score = 0.5

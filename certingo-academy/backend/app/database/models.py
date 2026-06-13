@@ -1,7 +1,20 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, Enum, JSON, Text, UniqueConstraint
+import enum
+
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-import enum
+
 from .db import Base
 
 # --- Enums ---
@@ -343,7 +356,11 @@ class MCPInvocationLog(Base):
     response_json = Column(JSON)
     status = Column(String)
     duration_ms = Column(Integer)
-    request_id = Column(String, ForeignKey("audit_events.request_id"))
+    # Correlation id linking this invocation to the originating request / audit
+    # trail. Kept as a plain indexed column (NOT a foreign key): request_id is
+    # not unique in audit_events, and Postgres rejects a FK to a non-unique
+    # column. SQLite tolerated it only because it does not enforce FKs by default.
+    request_id = Column(String, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 # --- Student Learning Engine ---

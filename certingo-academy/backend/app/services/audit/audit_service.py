@@ -1,6 +1,9 @@
-from sqlalchemy.orm import Session
-from ...database import models
 import uuid
+
+from sqlalchemy.orm import Session
+
+from ...database import models
+
 
 class AuditService:
     def log(self, db: Session, tenant_id: str, user_id: str, action: str,

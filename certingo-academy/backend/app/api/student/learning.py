@@ -1,19 +1,25 @@
+import uuid
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from ...database.db import get_db
+
 from ...database import models
+from ...database.db import get_db
 from ...schemas import academy as schemas
 from ...services.academy.learning_engine import (
-    MasteryEngine, DiagnosticEngine, LearningPathGenerator, ExamGenerator, AdaptiveSelector,
+    AdaptiveSelector,
+    DiagnosticEngine,
+    ExamGenerator,
+    LearningPathGenerator,
+    MasteryEngine,
 )
 from ...services.academy.spaced_repetition_service import SpacedRepetitionService
-from ...services.events.event_service import EventService
-from ...services.audit.audit_service import AuditService
 from ...services.ai.ai_service import AIService
+from ...services.audit.audit_service import AuditService
+from ...services.events.event_service import EventService
 from ...services.knowledge.knowledge_service import KnowledgeService
 from ..deps import ensure_user_access, get_current_user
-from datetime import datetime
-import uuid
 
 router = APIRouter(tags=["student"])
 

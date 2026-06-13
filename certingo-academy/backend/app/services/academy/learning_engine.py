@@ -1,11 +1,19 @@
-from sqlalchemy.orm import Session
-from ...database.models import (
-    MasteryScore, Question, Attempt, AttemptAnswer, User, Domain, Skill,
-    ReviewSchedule, LearnerProfile,
-)
-from ...core.logging import get_logger
-from datetime import datetime
 import random
+from datetime import datetime
+
+from sqlalchemy.orm import Session
+
+from ...core.logging import get_logger
+from ...database.models import (
+    Attempt,
+    AttemptAnswer,
+    Domain,
+    LearnerProfile,
+    MasteryScore,
+    Question,
+    ReviewSchedule,
+    Skill,
+)
 
 logger = get_logger(__name__)
 
