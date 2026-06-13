@@ -67,7 +67,7 @@ export const academyApi = {
   createSecret: (data: any) => api.post('/api/admin/secrets', data),
   getMCPServers: () => api.get('/api/admin/mcp/servers'),
   testAIGeneration: (data: any) => api.post('/api/admin/ai-studio/generate-test', data),
-  getAdminQuestions: () => api.get('/api/academy/admin/questions'),
+  getAdminQuestions: () => api.get('/api/admin/content-studio/questions'),
 };
 
 export default api;

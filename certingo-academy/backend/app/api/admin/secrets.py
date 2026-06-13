@@ -16,7 +16,10 @@ class SecretCreate(BaseModel):
     value: str = Field(min_length=1)
 
 
-@router.get("/")
+# Registered with and without trailing slash so clients hitting
+# /api/admin/secrets are answered directly (no 307 redirect).
+@router.get("")
+@router.get("/", include_in_schema=False)
 async def list_secrets(
     current_user: models.User = Depends(require_admin),
     db: Session = Depends(get_db),
@@ -40,7 +43,8 @@ async def list_secrets(
     ]
 
 
-@router.post("/")
+@router.post("")
+@router.post("/", include_in_schema=False)
 async def create_secret(
     data: SecretCreate,
     current_user: models.User = Depends(require_admin),
