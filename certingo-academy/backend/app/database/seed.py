@@ -1,7 +1,8 @@
-from .db import SessionLocal
-from .models import Tenant, User, UserRole, LearnerProfile, TenantAISettings
-from ..core.security import hash_password
 import uuid
+
+from ..core.security import hash_password
+from .db import SessionLocal
+from .models import LearnerProfile, Tenant, TenantAISettings, User, UserRole
 
 # Demo credentials (documented in .env.example at the project root)
 DEMO_USERS = [

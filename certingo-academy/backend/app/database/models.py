@@ -1,7 +1,20 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, Enum, JSON, Text, UniqueConstraint
+import enum
+
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-import enum
+
 from .db import Base
 
 # --- Enums ---
@@ -343,7 +356,11 @@ class MCPInvocationLog(Base):
     response_json = Column(JSON)
     status = Column(String)
     duration_ms = Column(Integer)
-    request_id = Column(String, ForeignKey("audit_events.request_id"))
+    # Correlation id linking this invocation to the originating request / audit
+    # trail. Kept as a plain indexed column (NOT a foreign key): request_id is
+    # not unique in audit_events, and Postgres rejects a FK to a non-unique
+    # column. SQLite tolerated it only because it does not enforce FKs by default.
+    request_id = Column(String, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 # --- Student Learning Engine ---
@@ -419,3 +436,20 @@ class MasteryScore(Base):
     last_updated = Column(DateTime(timezone=True), onupdate=func.now())
 
     user = relationship("User", back_populates="mastery_scores")
+
+class ReviewSchedule(Base):
+    """Spaced-repetition schedule (SM-2 simplified) per user/question."""
+    __tablename__ = "review_schedules"
+    __table_args__ = (
+        UniqueConstraint("user_id", "question_id", name="uq_review_user_question"),
+    )
+    id = Column(String, primary_key=True, index=True)
+    user_id = Column(String, ForeignKey("users.id"))
+    tenant_id = Column(String, ForeignKey("tenants.id"))
+    question_id = Column(String, ForeignKey("questions.id"))
+    skill_id = Column(String, ForeignKey("skills.id"))
+    repetitions = Column(Integer, default=0)
+    ease_factor = Column(Float, default=2.5)
+    interval_days = Column(Float, default=0.0)
+    due_at = Column(DateTime, index=True)
+    last_reviewed_at = Column(DateTime, nullable=True)

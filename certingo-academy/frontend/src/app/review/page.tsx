@@ -1,35 +1,45 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Notebook, AlertCircle, RefreshCw, ChevronRight, BookOpen, Sparkles } from 'lucide-react';
+import { Notebook, AlertCircle, Sparkles } from 'lucide-react';
 import { academyApi } from '@/lib/api';
+import { useToast } from '@/context/ToastContext';
+import { getErrorMessage } from '@/lib/errors';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { ErrorScreen } from '@/components/StateScreens';
+import type { NotebookEntry } from '@/types/api';
 
 export default function MistakesNotebookPage() {
   const router = useRouter();
-  const [notebook, setNotebook] = useState<any[]>([]);
+  const toast = useToast();
+  const [notebook, setNotebook] = useState<NotebookEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchNotebook = useCallback(async () => {
     const id = localStorage.getItem('certingo_user_id');
     if (!id) { router.push('/login'); return; }
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await academyApi.getNotebook(id);
+      setNotebook(res.data);
+    } catch (err) {
+      const message = getErrorMessage(err, 'Could not load your notebook.');
+      setError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [router, toast]);
 
-    const fetchNotebook = async () => {
-      try {
-        const res = await academyApi.getNotebook(id);
-        setNotebook(res.data);
-      } catch (err) { console.error(err); }
-      finally { setLoading(false); }
-    };
+  useEffect(() => {
     fetchNotebook();
-  }, []);
+  }, [fetchNotebook]);
 
-  if (loading) return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
-    </div>
-  );
+  if (loading) return <LoadingScreen label="Loading your notebook" />;
+  if (error) return <ErrorScreen message={error} onRetry={fetchNotebook} />;
 
   return (
     <div className="min-h-screen bg-[#050505] text-white p-10">

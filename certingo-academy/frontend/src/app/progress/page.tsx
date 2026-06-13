@@ -1,35 +1,47 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Target, BarChart3, TrendingUp, AlertTriangle, CheckCircle, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
+import { Target, BarChart3, ShieldCheck } from 'lucide-react';
 import { academyApi } from '@/lib/api';
+import { useToast } from '@/context/ToastContext';
+import { getErrorMessage } from '@/lib/errors';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { ErrorScreen } from '@/components/StateScreens';
+import type { ReadinessStats } from '@/types/api';
 
 export default function ReadinessDashboardPage() {
   const router = useRouter();
-  const [stats, setStats] = useState<any>(null);
+  const toast = useToast();
+  const [stats, setStats] = useState<ReadinessStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchStats = useCallback(async () => {
     const id = localStorage.getItem('certingo_user_id');
     if (!id) { router.push('/login'); return; }
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await academyApi.getReadiness(id);
+      setStats(res.data);
+    } catch (err) {
+      const message = getErrorMessage(err, 'Could not load your readiness stats.');
+      setError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [router, toast]);
 
-    const fetchStats = async () => {
-      try {
-        const res = await academyApi.getReadiness(id);
-        setStats(res.data);
-      } catch (err) { console.error(err); }
-      finally { setLoading(false); }
-    };
+  useEffect(() => {
     fetchStats();
-  }, []);
+  }, [fetchStats]);
 
-  if (loading || !stats) return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
-    </div>
-  );
+  if (loading) return <LoadingScreen label="Calculating readiness" />;
+  if (error && !stats) return <ErrorScreen message={error} onRetry={fetchStats} />;
+  if (!stats) return <ErrorScreen message="No readiness data available." onRetry={fetchStats} />;
 
   return (
     <div className="min-h-screen bg-[#050505] text-white p-10">
@@ -93,7 +105,7 @@ export default function ReadinessDashboardPage() {
               <span>Domain Proficiency</span>
            </h3>
            <div className="space-y-6">
-              {Object.entries(stats.domain_breakdown).map(([name, score]: [string, any]) => (
+              {Object.entries(stats.domain_breakdown).map(([name, score]) => (
                  <div key={name}>
                     <div className="flex justify-between items-end mb-2">
                        <span className="text-sm font-bold">{name}</span>

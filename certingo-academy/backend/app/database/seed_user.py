@@ -1,7 +1,9 @@
-from .db import SessionLocal
-from .models import User, LearnerProfile, UserRole, Tenant, MasteryScore
-from ..core.security import hash_password
 import uuid
+
+from ..core.security import hash_password
+from .db import SessionLocal
+from .models import LearnerProfile, MasteryScore, User, UserRole
+
 
 def seed_user():
     db = SessionLocal()

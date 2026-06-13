@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
-from ...database.db import get_db
+
 from ...database import models
-from ...services.mcp.registry_service import MCPRegistryService
+from ...database.db import get_db
 from ...services.audit.audit_service import AuditService
+from ...services.mcp.registry_service import MCPRegistryService
 from ..deps import require_role
 
 require_admin = require_role(models.UserRole.TENANT_ADMIN, models.UserRole.SUPER_ADMIN)
@@ -36,9 +37,23 @@ async def register_mcp_server(
 ):
     audit = AuditService()
     service = MCPRegistryService(db, audit)
-    return await service.register_server(
+    server = await service.register_server(
         current_user.tenant_id, data.name, data.url, data.category, data.description
     )
+    # The instance is expired after commit; refresh and return an explicit
+    # projection so the response carries the new id/fields (not an empty body).
+    db.refresh(server)
+    return {
+        "id": server.id,
+        "tenant_id": server.tenant_id,
+        "name": server.name,
+        "url": server.url,
+        "category": server.category,
+        "description": server.description,
+        "status": server.status,
+        "tool_count": server.tool_count,
+        "created_at": server.created_at,
+    }
 
 @router.get("/servers/{server_id}/tools")
 async def fetch_mcp_tools(
@@ -56,3 +71,31 @@ async def fetch_mcp_tools(
     audit = AuditService()
     service = MCPRegistryService(db, audit)
     return await service.fetch_tools(server_id)
+
+
+@router.delete("/servers/{server_id}")
+async def delete_mcp_server(
+    server_id: str,
+    current_user: models.User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Delete an MCP server of the current tenant. 404 when cross-tenant/missing."""
+    server = db.query(models.MCPServer).filter(
+        models.MCPServer.id == server_id,
+        models.MCPServer.tenant_id == current_user.tenant_id,
+    ).first()
+    if server is None:
+        raise HTTPException(status_code=404, detail="MCP server not found")
+
+    db.delete(server)
+    db.commit()
+
+    AuditService().log(
+        db,
+        current_user.tenant_id,
+        current_user.id,
+        "mcp_server_deleted",
+        "MCPServer",
+        server_id,
+    )
+    return {"status": "deleted", "id": server_id}

@@ -1,12 +1,21 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from .config import get_settings
-from .middleware.request_id import RequestIDMiddleware
-from .core.logging import setup_logging
-from .database.db import engine, Base
+
 from .api import auth
-from .api.admin import audit, secrets, mcp, marketplace, control_room, content_studio, ai_studio
+from .api.admin import (
+    ai_studio,
+    audit,
+    content_studio,
+    control_room,
+    knowledge_base,
+    marketplace,
+    mcp,
+    secrets,
+)
 from .api.student import learning, stats
+from .config import get_settings
+from .core.logging import setup_logging
+from .middleware.request_id import RequestIDMiddleware
 
 setup_logging()
 settings = get_settings()
@@ -33,6 +42,7 @@ app.include_router(marketplace.router, prefix="/api/admin")
 app.include_router(control_room.router, prefix="/api/admin")
 app.include_router(content_studio.router, prefix="/api/admin")
 app.include_router(ai_studio.router, prefix="/api/admin")
+app.include_router(knowledge_base.router, prefix="/api/admin")
 
 # Student Routers
 app.include_router(learning.router, prefix="/api/academy")

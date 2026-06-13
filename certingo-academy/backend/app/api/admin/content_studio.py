@@ -2,8 +2,10 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from ...database.db import get_db
+
 from ...database import models
+from ...database.db import get_db
+from ...services.audit.audit_service import AuditService
 from ...services.content.studio_service import ContentStudioService
 from ..deps import require_role
 
@@ -64,22 +66,69 @@ async def approve_content(
     current_user: models.User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
-    if data.get('type') not in ("Lesson", "Question", "LearningBit"):
-        raise HTTPException(status_code=400, detail="Invalid content type")
+    """Approve a question of the current tenant. Symmetric to /reject.
 
-    # Ensure the resource belongs to the admin's tenant before approving
-    model_map = {
-        "Lesson": models.Lesson,
-        "Question": models.Question,
-        "LearningBit": models.LearningBit,
-    }
-    model = model_map[data['type']]
-    resource = db.query(model).filter(
-        model.id == data['id'],
-        model.tenant_id == current_user.tenant_id,
+    Body: {"question_id": "..."}. 404 when the question is missing or belongs
+    to another tenant.
+    """
+    question_id = data.get("question_id")
+    if not question_id:
+        raise HTTPException(status_code=400, detail="question_id is required")
+
+    # Ensure the question belongs to the admin's tenant before approving
+    question = db.query(models.Question).filter(
+        models.Question.id == question_id,
+        models.Question.tenant_id == current_user.tenant_id,
     ).first()
-    if resource is None:
+    if question is None:
         raise HTTPException(status_code=404, detail="Content not found")
 
     service = ContentStudioService(db)
-    return service.approve_content(data['type'], data['id'], current_user.id)
+    service.approve_content("Question", question_id, current_user.id)
+
+    AuditService().log(
+        db,
+        current_user.tenant_id,
+        current_user.id,
+        "content_approved",
+        "Question",
+        question_id,
+    )
+    return {"id": question_id, "status": models.ContentStatus.PUBLISHED.value}
+
+
+@router.post("/reject")
+async def reject_content(
+    data: dict,
+    current_user: models.User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    """Reject a question of the current tenant. Symmetric to /approve.
+
+    Body: {"question_id": "..."}. 404 when the question is missing or belongs
+    to another tenant.
+    """
+    question_id = data.get("question_id")
+    if not question_id:
+        raise HTTPException(status_code=400, detail="question_id is required")
+
+    # Ensure the question belongs to the admin's tenant before rejecting
+    question = db.query(models.Question).filter(
+        models.Question.id == question_id,
+        models.Question.tenant_id == current_user.tenant_id,
+    ).first()
+    if question is None:
+        raise HTTPException(status_code=404, detail="Content not found")
+
+    service = ContentStudioService(db)
+    service.reject_content("Question", question_id, current_user.id)
+
+    AuditService().log(
+        db,
+        current_user.tenant_id,
+        current_user.id,
+        "content_rejected",
+        "Question",
+        question_id,
+    )
+    return {"id": question_id, "status": models.ContentStatus.REJECTED.value}

@@ -290,12 +290,15 @@ def upgrade() -> None:
     sa.Column('duration_ms', sa.Integer(), nullable=True),
     sa.Column('request_id', sa.String(), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
-    sa.ForeignKeyConstraint(['request_id'], ['audit_events.request_id'], ),
+    # NOTE: request_id is intentionally NOT a foreign key. audit_events.request_id
+    # is not unique, and Postgres rejects a FK to a non-unique column. It is a
+    # plain correlation id (indexed below).
     sa.ForeignKeyConstraint(['server_id'], ['mcp_servers.id'], ),
     sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_mcp_invocation_logs_id'), 'mcp_invocation_logs', ['id'], unique=False)
+    op.create_index(op.f('ix_mcp_invocation_logs_request_id'), 'mcp_invocation_logs', ['request_id'], unique=False)
     op.create_table('knowledge_chunks',
     sa.Column('id', sa.String(), nullable=False),
     sa.Column('tenant_id', sa.String(), nullable=True),
@@ -437,6 +440,7 @@ def downgrade() -> None:
     op.drop_table('skills')
     op.drop_index(op.f('ix_knowledge_chunks_id'), table_name='knowledge_chunks')
     op.drop_table('knowledge_chunks')
+    op.drop_index(op.f('ix_mcp_invocation_logs_request_id'), table_name='mcp_invocation_logs')
     op.drop_index(op.f('ix_mcp_invocation_logs_id'), table_name='mcp_invocation_logs')
     op.drop_table('mcp_invocation_logs')
     op.drop_index(op.f('ix_learning_sessions_id'), table_name='learning_sessions')

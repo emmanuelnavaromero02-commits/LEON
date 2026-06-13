@@ -1,54 +1,71 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, ArrowRight, Lightbulb, Sparkles, AlertCircle, Info, TriangleAlert, BrainCircuit } from 'lucide-react';
+import { X, Check, Lightbulb, Sparkles, AlertCircle, Info, TriangleAlert, BrainCircuit } from 'lucide-react';
 import { academyApi } from '@/lib/api';
+import { useToast } from '@/context/ToastContext';
+import { getErrorMessage } from '@/lib/errors';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { ErrorScreen } from '@/components/StateScreens';
+import type { Lesson } from '@/types/api';
 
 export default function LearnPage() {
   const router = useRouter();
-  const [lesson, setLesson] = useState<any>(null);
+  const toast = useToast();
+  const [lesson, setLesson] = useState<Lesson | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
 
-  useEffect(() => {
+  const fetchLesson = useCallback(async () => {
     const id = localStorage.getItem('certingo_user_id');
     if (!id) { router.push('/login'); return; }
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await academyApi.getNextLesson(id);
+      setLesson(res.data);
+    } catch (err) {
+      const message = getErrorMessage(err, 'Could not load your lesson.');
+      setError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [router, toast]);
 
-    const fetchLesson = async () => {
-      try {
-        const res = await academyApi.getNextLesson(id);
-        setLesson(res.data);
-      } catch (err) { console.error(err); }
-      finally { setLoading(false); }
-    };
+  useEffect(() => {
     fetchLesson();
-  }, []);
+  }, [fetchLesson]);
 
   const handleSubmit = async () => {
-    if (!selectedOption) return;
+    if (!selectedOption || !lesson) return;
     const correct = selectedOption === lesson.question.correct_answer;
     setIsCorrect(correct);
     setIsSubmitted(true);
 
     const id = localStorage.getItem('certingo_user_id');
     if (id) {
-      await academyApi.submitLesson(id, {
-        question_id: 'lesson-q',
-        selected_answer: selectedOption,
-        skill_id: lesson.skill_id
-      });
+      try {
+        await academyApi.submitLesson(id, {
+          question_id: lesson.question.id ?? 'lesson-q',
+          selected_answer: selectedOption,
+          skill_id: lesson.skill_id
+        });
+      } catch (err) {
+        // The answer is already revealed locally; surface a non-blocking notice.
+        toast.error(getErrorMessage(err, 'Could not save your progress.'));
+      }
     }
   };
 
-  if (loading || !lesson) return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
-    </div>
-  );
+  if (loading) return <LoadingScreen label="Loading your lesson" />;
+  if (error && !lesson) return <ErrorScreen message={error} onRetry={fetchLesson} />;
+  if (!lesson) return <ErrorScreen message="No lesson available right now." onRetry={fetchLesson} />;
 
   return (
     <div className="min-h-screen bg-[#050505] text-white flex flex-col">

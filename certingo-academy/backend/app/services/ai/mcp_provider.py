@@ -1,5 +1,7 @@
-from .base_provider import AIProvider
 from typing import Dict, List, Optional
+
+from .base_provider import AIProvider
+
 
 class MCPProvider(AIProvider):
     """Not implemented yet. AIService never instantiates it: tenants that

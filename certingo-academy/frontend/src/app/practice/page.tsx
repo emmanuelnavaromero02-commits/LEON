@@ -1,66 +1,76 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, ArrowRight, Sparkles, AlertCircle, Zap } from 'lucide-react';
+import { X, Check, Sparkles, AlertCircle, Zap } from 'lucide-react';
 import { academyApi } from '@/lib/api';
+import { useToast } from '@/context/ToastContext';
+import { getErrorMessage } from '@/lib/errors';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { ErrorScreen } from '@/components/StateScreens';
+import type { NextPracticeResponse, PracticeResult } from '@/types/api';
 
 export default function PracticePage() {
   const router = useRouter();
-  const [data, setData] = useState<any>(null);
+  const toast = useToast();
+  const [data, setData] = useState<NextPracticeResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<PracticeResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchNext();
-  }, []);
-
-  const fetchNext = async () => {
+  const fetchNext = useCallback(async () => {
     const id = localStorage.getItem('certingo_user_id');
     if (!id) {
       router.push('/login');
       return;
     }
     setLoading(true);
+    setError(null);
     setSelectedOption(null);
     setResult(null);
     try {
       const res = await academyApi.getNextPractice(id);
       setData(res.data);
     } catch (err) {
-      console.error(err);
+      const message = getErrorMessage(err, 'Could not load the next question.');
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, toast]);
+
+  useEffect(() => {
+    fetchNext();
+  }, [fetchNext]);
 
   const handleSubmit = async () => {
-    if (!selectedOption || isSubmitting) return;
+    if (!selectedOption || isSubmitting || !data) return;
     setIsSubmitting(true);
     const id = localStorage.getItem('certingo_user_id');
+    if (!id) {
+      router.push('/login');
+      return;
+    }
     try {
-      const res = await academyApi.submitPractice(id!, {
+      const res = await academyApi.submitPractice(id, {
         question_id: data.question.id,
         selected_answer: selectedOption
       });
       setResult(res.data);
     } catch (err) {
-      console.error(err);
+      toast.error(getErrorMessage(err, 'Could not check your answer.'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (loading || !data) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
-      </div>
-    );
-  }
+  if (loading) return <LoadingScreen label="Loading practice" />;
+  if (error && !data) return <ErrorScreen message={error} onRetry={fetchNext} />;
+  if (!data) return <ErrorScreen message="No practice question available." onRetry={fetchNext} />;
 
   return (
     <div className="min-h-screen bg-white flex flex-col">

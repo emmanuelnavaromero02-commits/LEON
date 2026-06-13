@@ -1,0 +1,65 @@
+# ============================================================================
+# Certingo Academy - local/dev stack.
+#
+#   docker compose up --build
+#
+# Brings up Postgres + the FastAPI backend (with migrations + seed) + the
+# Next.js frontend. Values below are DEV defaults; override via a .env file in
+# this directory (see .env.example) or real secrets for anything beyond local.
+# ============================================================================
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-certingo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-certingo}
+      POSTGRES_DB: ${POSTGRES_DB:-certingo}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-certingo} -d ${POSTGRES_DB:-certingo}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ENV: ${ENV:-dev}
+      # psycopg2 driver against the compose Postgres service.
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-certingo}:${POSTGRES_PASSWORD:-certingo}@db:5432/${POSTGRES_DB:-certingo}
+      # Dev-only example secrets; override for anything real.
+      JWT_SECRET: ${JWT_SECRET:-dev-compose-jwt-secret-change-me}
+      FIELD_ENCRYPTION_KEY: ${FIELD_ENCRYPTION_KEY:-R46i4kb_qhaMHE0_jNREGTeRq2ND9R0G0FW8tiHo4-4=}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      AI_PROVIDER: ${AI_PROVIDER:-mock}
+      # Run the idempotent seed on first start so demo accounts exist.
+      SEED_ON_START: "true"
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Baked into the client bundle at build time.
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+
+volumes:
+  db_data:

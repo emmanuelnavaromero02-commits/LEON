@@ -1,9 +1,13 @@
-import yaml
 import os
 import uuid
+
+import yaml
 from sqlalchemy.orm import Session
+
 from ...database import models
+from ...schemas.pack import PackValidationError, load_and_validate_pack
 from ..audit.audit_service import AuditService
+
 
 class PackImportService:
     def __init__(self, db: Session, audit: AuditService):
@@ -11,6 +15,19 @@ class PackImportService:
         self.audit = audit
 
     async def import_pack(self, tenant_id: str, pack_path: str, user_id: str):
+        # Validate the WHOLE pack (every YAML, schema + referential integrity)
+        # BEFORE touching the database. A malformed pack fails fast here with a
+        # clear, aggregated error and nothing is written — the DB cannot be
+        # corrupted by bad content.
+        try:
+            load_and_validate_pack(pack_path)
+        except PackValidationError as exc:
+            self.audit.log(
+                self.db, tenant_id, user_id, "pack_installed", "CertificationPack",
+                os.path.basename(pack_path), "failure", {"error": str(exc)},
+            )
+            raise
+
         with open(os.path.join(pack_path, "pack.yml"), 'r') as f:
             pack_config = yaml.safe_load(f)
 
