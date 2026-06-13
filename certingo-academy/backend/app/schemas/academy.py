@@ -41,6 +41,16 @@ class AnswerSubmit(BaseModel):
     question_id: str
     selected_answer: str
 
+class ExamAnswer(BaseModel):
+    """A single answer in an exam submission."""
+    question_id: str
+    selected_answer: str
+
+class ExamSubmitRequest(BaseModel):
+    """Body for POST /api/academy/exam/submit/{user_id}."""
+    exam_id: str
+    answers: List[ExamAnswer] = []
+
 class ExamResult(BaseModel):
     score: float
     domain_scores: Dict[str, float]

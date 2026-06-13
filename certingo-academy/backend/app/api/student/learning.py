@@ -403,25 +403,259 @@ async def submit_practice(
 
     return {"status": "success", "is_correct": is_correct, "new_mastery": new_score, "feedback": feedback}
 
+# Exam duration shown to the learner (minutes). Mirrors the frontend timer.
+EXAM_DURATION_MINUTES = 20
+# A learner passes the exam at 70% or above (product threshold).
+EXAM_PASS_THRESHOLD = 0.7
+
+
+def _skill_to_domain_map(db: Session, tenant_id: str, skill_ids: list[str]) -> dict[str, str]:
+    """Map skill_id -> domain_id for the given skills, scoped to the tenant."""
+    if not skill_ids:
+        return {}
+    rows = (
+        db.query(models.Skill.id, models.Skill.domain_id)
+        .filter(
+            models.Skill.id.in_(skill_ids),
+            models.Skill.tenant_id == tenant_id,
+        )
+        .all()
+    )
+    return {skill_id: domain_id for skill_id, domain_id in rows}
+
+
 @router.post("/exam/start/{user_id}")
 async def start_exam(
     user_id: str,
     current_user: models.User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    """Start a full exam.
+
+    Returns the questions WITHOUT their ``correct_answer``/``explanation`` so the
+    exam can no longer be graded on the client. The exam is persisted as an open
+    Attempt (type="exam", score=NULL) whose AttemptAnswer rows pin exactly which
+    questions belong to it; the answers are filled in (and the score computed) by
+    the server at ``/exam/submit``. The Attempt id IS the ``exam_id``.
+    """
     ensure_user_access(db, current_user, user_id)
-    cert_id = resolve_certification_id(db, user_id, current_user.tenant_id)
+    tenant_id = current_user.tenant_id
+    cert_id = resolve_certification_id(db, user_id, tenant_id)
+
     generator = ExamGenerator()
-    questions = generator.create_exam(db, current_user.tenant_id, cert_id)
+    questions = generator.create_exam(db, tenant_id, cert_id)
+
+    skill_ids = [q.skill_id for q in questions]
+    domain_by_skill = _skill_to_domain_map(db, tenant_id, skill_ids)
+
+    # Open exam Attempt: score stays NULL until the learner submits. The
+    # placeholder AttemptAnswer rows are the authoritative list of which
+    # questions this exam contains (so submit can reject foreign question ids).
+    exam_id = str(uuid.uuid4())
+    attempt = models.Attempt(
+        id=exam_id,
+        user_id=user_id,
+        tenant_id=tenant_id,
+        certification_id=cert_id,
+        type="exam",
+        score=None,
+        xp_earned=0,
+    )
+    db.add(attempt)
+    db.flush()  # need attempt.id before adding the answer rows
+    for q in questions:
+        db.add(models.AttemptAnswer(
+            attempt_id=exam_id,
+            question_id=q.id,
+            selected_answer=None,
+            is_correct=None,
+        ))
+    db.commit()
+
     return {
-        "exam_id": str(uuid.uuid4()),
+        "exam_id": exam_id,
         "questions": [
             {
                 "id": q.id,
                 "prompt": q.prompt,
                 "options": q.options,
                 "difficulty": q.difficulty,
-                "correct_answer": q.correct_answer
+                "domain_id": domain_by_skill.get(q.skill_id),
             } for q in questions
-        ]
+        ],
+        "total": len(questions),
+        "duration_minutes": EXAM_DURATION_MINUTES,
+    }
+
+
+@router.post("/exam/submit/{user_id}")
+async def submit_exam(
+    user_id: str,
+    submission: schemas.ExamSubmitRequest,
+    current_user: models.User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Grade a full exam ON THE SERVER.
+
+    The exam_id must belong to this user+tenant. Each answer is compared with the
+    real ``Question.correct_answer`` (tenant-scoped); unanswered exam questions
+    count as incorrect and answers for questions not in this exam are ignored.
+    Every graded answer updates mastery (same MasteryEngine as practice) and feeds
+    spaced repetition. The open Attempt is completed with the final score/xp.
+
+    correct_answer/explanation are revealed ONLY in the ``results`` here (post-exam
+    review), never at ``/exam/start``. Re-submitting a graded exam returns the
+    previously computed result (idempotent; HTTP 200).
+    """
+    ensure_user_access(db, current_user, user_id)
+    tenant_id = current_user.tenant_id
+
+    # The exam_id is the Attempt id; it must belong to this user and tenant.
+    attempt = db.query(models.Attempt).filter(
+        models.Attempt.id == submission.exam_id,
+        models.Attempt.user_id == user_id,
+        models.Attempt.tenant_id == tenant_id,
+        models.Attempt.type == "exam",
+    ).first()
+    if attempt is None:
+        raise HTTPException(status_code=404, detail="Exam not found")
+
+    # The placeholder rows created at start are the authoritative question set.
+    answer_rows = db.query(models.AttemptAnswer).filter(
+        models.AttemptAnswer.attempt_id == attempt.id
+    ).all()
+    exam_question_ids = [row.question_id for row in answer_rows]
+
+    # Anti-double-submit: a completed exam (score already set) is idempotent.
+    if attempt.score is not None:
+        return _build_exam_result(db, tenant_id, attempt, exam_question_ids, answer_rows)
+
+    # Map submitted answers; later duplicates for the same question win.
+    submitted = {a.question_id: a.selected_answer for a in submission.answers}
+
+    questions = {
+        q.id: q
+        for q in db.query(models.Question).filter(
+            models.Question.id.in_(exam_question_ids),
+            models.Question.tenant_id == tenant_id,
+        ).all()
+    } if exam_question_ids else {}
+
+    mastery_engine = MasteryEngine()
+    spaced = SpacedRepetitionService(db)
+    rows_by_question = {row.question_id: row for row in answer_rows}
+
+    correct_count = 0
+    for question_id in exam_question_ids:
+        question = questions.get(question_id)
+        row = rows_by_question[question_id]
+        selected = submitted.get(question_id)  # None => unanswered => incorrect
+        if question is None:
+            # Question vanished (e.g. archived) — treat as incorrect, no grading.
+            row.selected_answer = selected
+            row.is_correct = False
+            continue
+
+        is_correct = selected is not None and selected == question.correct_answer
+        row.selected_answer = selected
+        row.is_correct = is_correct
+        if is_correct:
+            correct_count += 1
+
+        # Same learning side effects as practice/submit: mastery + spaced rep.
+        mastery_engine.update_user_mastery(
+            db, user_id, tenant_id, question.skill_id, is_correct, question.difficulty or "medium"
+        )
+        spaced.record_review(tenant_id, user_id, question, is_correct)
+
+    total = len(exam_question_ids)
+    score = (correct_count / total) if total else 0.0
+
+    # Complete the open Attempt.
+    attempt.score = score
+    attempt.xp_earned = correct_count * 10
+    db.commit()
+
+    audit = AuditService()
+    event_bus = EventService(db, audit)
+    event_bus.emit(tenant_id, user_id, "exam_completed", {
+        "exam_id": attempt.id, "score": score, "total": total, "correct": correct_count,
+    })
+
+    return _build_exam_result(db, tenant_id, attempt, exam_question_ids, answer_rows)
+
+
+def _build_exam_result(db: Session, tenant_id: str, attempt, exam_question_ids: list[str], answer_rows):
+    """Assemble the exact exam-result payload the frontend renders.
+
+    Reveals correct_answer/explanation here (post-exam review). Computes the
+    per-domain breakdown (correct/total within each domain of the exam).
+    """
+    questions = {
+        q.id: q
+        for q in db.query(models.Question).filter(
+            models.Question.id.in_(exam_question_ids),
+            models.Question.tenant_id == tenant_id,
+        ).all()
+    } if exam_question_ids else {}
+
+    rows_by_question = {row.question_id: row for row in answer_rows}
+
+    total = len(exam_question_ids)
+    correct_count = sum(1 for row in answer_rows if row.is_correct)
+    score = attempt.score if attempt.score is not None else 0.0
+
+    # Domain breakdown: resolve each exam question's domain (skill -> domain).
+    skill_ids = [q.skill_id for q in questions.values()]
+    domain_by_skill = _skill_to_domain_map(db, tenant_id, skill_ids)
+    domain_ids = [d for d in set(domain_by_skill.values()) if d is not None]
+    domain_names = {}
+    if domain_ids:
+        domain_names = {
+            d.id: d.name
+            for d in db.query(models.Domain).filter(
+                models.Domain.id.in_(domain_ids),
+                models.Domain.tenant_id == tenant_id,
+            ).all()
+        }
+
+    # Aggregate correct/total per domain.
+    domain_totals: dict[str, list[int]] = {}  # domain_id -> [correct, total]
+    results = []
+    for question_id in exam_question_ids:
+        question = questions.get(question_id)
+        row = rows_by_question.get(question_id)
+        is_correct = bool(row.is_correct) if row is not None else False
+        selected = row.selected_answer if row is not None else None
+        results.append({
+            "question_id": question_id,
+            "selected_answer": selected,
+            "correct": is_correct,
+            "correct_answer": question.correct_answer if question is not None else None,
+            "explanation": question.explanation if question is not None else None,
+        })
+        if question is not None:
+            domain_id = domain_by_skill.get(question.skill_id)
+            if domain_id is not None:
+                bucket = domain_totals.setdefault(domain_id, [0, 0])
+                bucket[1] += 1
+                if is_correct:
+                    bucket[0] += 1
+
+    domain_breakdown = [
+        {
+            "domain_id": domain_id,
+            "name": domain_names.get(domain_id, ""),
+            "score": (counts[0] / counts[1]) if counts[1] else 0.0,
+        }
+        for domain_id, counts in domain_totals.items()
+    ]
+
+    return {
+        "score": score,
+        "total": total,
+        "correct": correct_count,
+        "passed": score >= EXAM_PASS_THRESHOLD,
+        "domain_breakdown": domain_breakdown,
+        "results": results,
     }
