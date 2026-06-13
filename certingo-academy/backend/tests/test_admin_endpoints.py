@@ -145,6 +145,54 @@ def test_reject_question_missing_id_is_400(client, users):
     assert resp.status_code == 400
 
 
+# --- CONTENT STUDIO: APPROVE -------------------------------------------------
+
+def test_approve_question_as_admin(client, users, db):
+    q = _make_question(db, users["admin1"].tenant_id, status="in_review")
+    resp = client.post(
+        "/api/admin/content-studio/approve",
+        json={"question_id": q.id},
+        headers=auth_headers(users["admin1"]),
+    )
+    assert resp.status_code == 200
+    assert resp.json() == {"id": q.id, "status": "published"}
+
+    db.refresh(q)
+    assert q.status == models.ContentStatus.PUBLISHED.value
+
+
+def test_approve_question_as_student_forbidden(client, users, db):
+    q = _make_question(db, users["admin1"].tenant_id)
+    resp = client.post(
+        "/api/admin/content-studio/approve",
+        json={"question_id": q.id},
+        headers=auth_headers(users["student1"]),
+    )
+    assert resp.status_code == 403
+
+
+def test_approve_question_cross_tenant_is_404(client, users, db):
+    # Question lives in tenant-2; admin of tenant-1 must not approve it
+    q = _make_question(db, users["admin2"].tenant_id)
+    resp = client.post(
+        "/api/admin/content-studio/approve",
+        json={"question_id": q.id},
+        headers=auth_headers(users["admin1"]),
+    )
+    assert resp.status_code == 404
+    db.refresh(q)
+    assert q.status != models.ContentStatus.PUBLISHED.value
+
+
+def test_approve_question_missing_id_is_400(client, users):
+    resp = client.post(
+        "/api/admin/content-studio/approve",
+        json={},
+        headers=auth_headers(users["admin1"]),
+    )
+    assert resp.status_code == 400
+
+
 # --- KNOWLEDGE BASE: CRUD ----------------------------------------------------
 
 def test_knowledge_document_create_list_delete_cycle(client, users):

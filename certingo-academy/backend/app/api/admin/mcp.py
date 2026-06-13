@@ -36,9 +36,23 @@ async def register_mcp_server(
 ):
     audit = AuditService()
     service = MCPRegistryService(db, audit)
-    return await service.register_server(
+    server = await service.register_server(
         current_user.tenant_id, data.name, data.url, data.category, data.description
     )
+    # The instance is expired after commit; refresh and return an explicit
+    # projection so the response carries the new id/fields (not an empty body).
+    db.refresh(server)
+    return {
+        "id": server.id,
+        "tenant_id": server.tenant_id,
+        "name": server.name,
+        "url": server.url,
+        "category": server.category,
+        "description": server.description,
+        "status": server.status,
+        "tool_count": server.tool_count,
+        "created_at": server.created_at,
+    }
 
 @router.get("/servers/{server_id}/tools")
 async def fetch_mcp_tools(
