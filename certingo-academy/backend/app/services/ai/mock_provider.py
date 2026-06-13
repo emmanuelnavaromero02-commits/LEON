@@ -1,9 +1,11 @@
 from .base_provider import AIProvider
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional
 import asyncio
 
 class MockProvider(AIProvider):
-    async def generate_lesson(self, learner_profile: Dict, skill: Dict, source_content: str, mastery_score: float) -> Dict:
+    provider_name = "mock"
+
+    async def generate_lesson(self, learner_profile: Dict, skill: Dict, source_content: str, mastery_score: float, bits: Optional[List] = None) -> Dict:
         # Simulate AI processing time
         await asyncio.sleep(0.5)
         return {

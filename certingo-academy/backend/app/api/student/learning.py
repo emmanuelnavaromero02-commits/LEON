@@ -274,9 +274,9 @@ async def submit_practice(
             db.add(mistake)
         db.commit()
 
-    # Feedback
+    # Feedback (AIService falls back to the mock provider if the LLM fails)
     ai_service = AIService(db, tenant_id)
-    feedback = await ai_service.provider.generate_feedback({}, question.__dict__, submission.selected_answer, is_correct)
+    feedback = await ai_service.generate_feedback({}, question.__dict__, submission.selected_answer, is_correct)
 
     event_bus.emit(tenant_id, user_id, "practice_answered", {"is_correct": is_correct, "skill_id": question.skill_id})
 

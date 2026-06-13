@@ -39,6 +39,12 @@ class Settings(BaseSettings):
     # AI provider override: "mock", "openai", "anthropic", "mcp"
     AI_PROVIDER: str = "mock"
 
+    # Optional dev fallback API keys for the AI providers. In production the
+    # per-tenant keys live in the encrypted secrets vault; these env vars are
+    # only consulted when the vault has no key for the tenant.
+    ANTHROPIC_API_KEY: Optional[str] = None
+    OPENAI_API_KEY: Optional[str] = None
+
     # Tenant slug used when registering/logging in without an explicit tenant
     DEFAULT_TENANT_SLUG: str = "demo"
 

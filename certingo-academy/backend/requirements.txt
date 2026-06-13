@@ -11,6 +11,7 @@ alembic==1.15.2
 pyyaml==6.0.2
 requests==2.32.3
 httpx==0.28.1
+anthropic==0.109.1
 pytest==8.3.5
 cryptography==44.0.2
 python-dotenv==1.1.0
