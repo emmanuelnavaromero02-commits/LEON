@@ -12,7 +12,10 @@ class ReadinessScoreService:
             models.MasteryScore.tenant_id == tenant_id
         ).all()
 
-        domains = self.db.query(models.Domain).filter(models.Domain.certification_id == certification_id).all()
+        domains = self.db.query(models.Domain).filter(
+            models.Domain.certification_id == certification_id,
+            models.Domain.tenant_id == tenant_id
+        ).all()
         if not domains: return {"overall": 0, "pass_probability": 0}
 
         domain_scores = {}

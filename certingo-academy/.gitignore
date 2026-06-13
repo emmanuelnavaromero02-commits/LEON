@@ -12,3 +12,4 @@ venv/
 .env
 .env.local
 .DS_Store
+.field_key

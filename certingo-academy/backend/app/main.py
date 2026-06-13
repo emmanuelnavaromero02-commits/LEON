@@ -1,24 +1,29 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from .config import get_settings
 from .middleware.request_id import RequestIDMiddleware
 from .core.logging import setup_logging
 from .database.db import engine, Base
+from .api import auth
 from .api.admin import audit, secrets, mcp, marketplace, control_room, content_studio, ai_studio
 from .api.student import learning, stats
-import os
 
 setup_logging()
+settings = get_settings()
 
 app = FastAPI(title="Certingo Academy API", version="2.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 app.add_middleware(RequestIDMiddleware)
+
+# Auth Router
+app.include_router(auth.router)
 
 # Admin Routers
 app.include_router(audit.router, prefix="/api/admin")

@@ -4,13 +4,23 @@ from ...database.db import get_db
 from ...database import models
 from ...services.ai.ai_service import AIService
 from ...services.knowledge.knowledge_service import KnowledgeService
+from ..deps import require_role
+
+require_admin = require_role(models.UserRole.TENANT_ADMIN, models.UserRole.SUPER_ADMIN)
 
 router = APIRouter(prefix="/ai-studio", tags=["admin-ai"])
 
 @router.post("/generate-test")
-async def test_generation(data: dict, db: Session = Depends(get_db)):
-    # data: { tenant_id, skill_id, prompt_type }
-    tenant_id = data.get('tenant_id', 'default-demo-tenant')
+async def test_generation(
+    data: dict,
+    current_user: models.User = Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    # data: { skill_id, prompt_type }
+    if 'skill_id' not in data or 'prompt_type' not in data:
+        raise HTTPException(status_code=400, detail="skill_id and prompt_type are required")
+
+    tenant_id = current_user.tenant_id
     ai_service = AIService(db, tenant_id)
     kb_service = KnowledgeService(db)
 

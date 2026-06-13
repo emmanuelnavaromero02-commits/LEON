@@ -1,11 +1,14 @@
 from sqlalchemy.orm import Session
+from ...config import get_settings
+from ...core.logging import get_logger
 from ...database import models
 from ..vault.vault_service import VaultService
 from .mock_provider import MockProvider
 from .openai_provider import OpenAIProvider
 from .anthropic_provider import AnthropicProvider
 from .prompt_manager import PromptManager
-import os
+
+logger = get_logger(__name__)
 
 class AIService:
     def __init__(self, db: Session, tenant_id: str):
@@ -24,13 +27,29 @@ class AIService:
         return settings
 
     def _init_provider(self):
-        provider_name = os.getenv("AI_PROVIDER", self.settings.provider)
+        app_settings = get_settings()
+        provider_name = self.settings.provider or app_settings.AI_PROVIDER
+        if app_settings.AI_PROVIDER != "mock":
+            provider_name = app_settings.AI_PROVIDER
+
         if provider_name == "openai":
             api_key = self.vault.get_secret(self.db, self.tenant_id, "OPENAI_API_KEY")
-            return OpenAIProvider(api_key=api_key, model=self.settings.model_name or "gpt-4o")
+            if not api_key:
+                logger.warning(
+                    "OPENAI_API_KEY secret not found for tenant %s. Falling back to mock provider.",
+                    self.tenant_id,
+                )
+                return MockProvider()
+            return OpenAIProvider(api_key=api_key, model_name=self.settings.model_name or "gpt-4o")
         elif provider_name == "anthropic":
             api_key = self.vault.get_secret(self.db, self.tenant_id, "ANTHROPIC_API_KEY")
-            return AnthropicProvider(api_key=api_key, model=self.settings.model_name or "claude-3-5-sonnet")
+            if not api_key:
+                logger.warning(
+                    "ANTHROPIC_API_KEY secret not found for tenant %s. Falling back to mock provider.",
+                    self.tenant_id,
+                )
+                return MockProvider()
+            return AnthropicProvider(api_key=api_key, model_name=self.settings.model_name or "claude-3-5-sonnet")
         else:
             return MockProvider()
 

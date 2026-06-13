@@ -1,3 +1,4 @@
+import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -13,6 +14,19 @@ config = context.config
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+# Resolve the database URL from app settings / env var, falling back to alembic.ini.
+def _resolve_database_url() -> str:
+    url = os.getenv("DATABASE_URL")
+    if not url:
+        try:
+            from app.config import get_settings
+            url = get_settings().DATABASE_URL
+        except Exception:
+            url = None
+    return url or config.get_main_option("sqlalchemy.url")
+
+config.set_main_option("sqlalchemy.url", _resolve_database_url())
 
 # add your model's MetaData object here
 # for 'autogenerate' support

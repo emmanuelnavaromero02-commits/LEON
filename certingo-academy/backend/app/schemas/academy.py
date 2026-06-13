@@ -12,13 +12,13 @@ class UserBase(BaseModel):
     role: str
 
 class OnboardingRequest(BaseModel):
-    full_name: str
-    email: EmailStr
-    target_certification_id: str
+    """Learner profile payload. User identity comes from the auth token."""
     background: str
     preferred_style: str
     weekly_time_minutes: int
     confidence_level: float
+    exam_deadline: Optional[datetime] = None
+    target_certification_id: Optional[str] = None
 
 class LessonResponse(BaseModel):
     title: str

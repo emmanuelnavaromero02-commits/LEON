@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, Enum, JSON, Text
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean, Enum, JSON, Text, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 import enum
@@ -128,9 +128,12 @@ class AuditEvent(Base):
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "email", name="uq_users_tenant_email"),
+    )
     id = Column(String, primary_key=True, index=True)
     tenant_id = Column(String, ForeignKey("tenants.id"))
-    email = Column(String, unique=True, index=True)
+    email = Column(String, index=True)
     full_name = Column(String)
     hashed_password = Column(String)
     role = Column(String, default=UserRole.STUDENT)

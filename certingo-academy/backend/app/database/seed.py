@@ -1,6 +1,14 @@
 from .db import SessionLocal
 from .models import Tenant, User, UserRole, LearnerProfile, TenantAISettings
+from ..core.security import hash_password
 import uuid
+
+# Demo credentials (documented in .env.example at the project root)
+DEMO_USERS = [
+    ("superadmin@certingo.demo", "Super Admin", UserRole.SUPER_ADMIN, "superadmin123"),
+    ("admin@certingo.demo", "Tenant Admin", UserRole.TENANT_ADMIN, "admin123"),
+    ("student@certingo.demo", "Jane Student", UserRole.STUDENT, "student123"),
+]
 
 def seed():
     db = SessionLocal()
@@ -17,17 +25,18 @@ def seed():
         db.add(ai_settings)
 
     # 2. Users
-    users = [
-        ("superadmin@certingo.demo", "Super Admin", UserRole.SUPER_ADMIN),
-        ("admin@certingo.demo", "Tenant Admin", UserRole.TENANT_ADMIN),
-        ("student@certingo.demo", "Jane Student", UserRole.STUDENT),
-    ]
-
-    for email, name, role in users:
-        u = db.query(User).filter(User.email == email).first()
+    for email, name, role, password in DEMO_USERS:
+        u = db.query(User).filter(User.tenant_id == tenant_id, User.email == email).first()
         if not u:
             u_id = str(uuid.uuid4())
-            u = User(id=u_id, tenant_id=tenant_id, email=email, full_name=name, role=role)
+            u = User(
+                id=u_id,
+                tenant_id=tenant_id,
+                email=email,
+                full_name=name,
+                role=role,
+                hashed_password=hash_password(password),
+            )
             db.add(u)
             if role == UserRole.STUDENT:
                 profile = LearnerProfile(
@@ -40,6 +49,9 @@ def seed():
                     confidence_level=0.6
                 )
                 db.add(profile)
+        elif not u.hashed_password:
+            # Backfill passwords for users created before auth existed
+            u.hashed_password = hash_password(password)
 
     db.commit()
     print("Base seed completed.")
