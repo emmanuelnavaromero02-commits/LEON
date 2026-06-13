@@ -92,6 +92,47 @@ export interface DiagnosticAnswer {
   selected_answer: string;
 }
 
+/**
+ * A diagnostic question (POST /api/academy/diagnostic/start/{userId}).
+ * Shares the practice-question shape; `correct_answer`/`explanation` are not
+ * revealed during the diagnostic, so they stay optional.
+ */
+export interface DiagnosticQuestion {
+  id: string;
+  prompt: string;
+  options: string[];
+  difficulty: Difficulty;
+  skill_id?: string;
+  source?: string;
+  [key: string]: unknown;
+}
+
+/** Response of POST /api/academy/diagnostic/start/{userId}. */
+export interface DiagnosticStartResponse {
+  questions: DiagnosticQuestion[];
+  [key: string]: unknown;
+}
+
+/**
+ * Result of POST /api/academy/diagnostic/submit/{userId}. The backend may return
+ * a richer summary than practice submissions; the UI reads only the optional
+ * fields it knows about and degrades gracefully otherwise.
+ */
+export interface DiagnosticResult {
+  /** Number of correct answers, when reported. */
+  score?: number;
+  /** Total questions, when reported. */
+  total?: number;
+  /** Overall mastery/accuracy as a 0-1 fraction, when reported. */
+  accuracy?: number;
+  /** Per-domain mastery breakdown, when reported. */
+  domain_breakdown?: Record<string, number>;
+  /** A starting recommendation/skill the path will begin from. */
+  recommended_skill_id?: string;
+  message?: string;
+  [key: string]: unknown;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Student — onboarding, dashboard, stats                                     */
 /* -------------------------------------------------------------------------- */
@@ -102,11 +143,18 @@ export interface OnboardingResponse {
   [key: string]: unknown;
 }
 
-/** A node in the learner's skill tree (when the backend returns one). */
+/** Lifecycle of a skill node in the learner's tree. */
+export type SkillStatus = 'locked' | 'in_progress' | 'mastered';
+
+/** A node in the learner's skill tree (GET dashboard → `skill_tree`). */
 export interface SkillNode {
+  skill_id: string;
   name: string;
-  score: number;
-  status: 'completed' | 'current' | 'locked';
+  domain_id: string;
+  /** Mastery as a 0-1 fraction. */
+  mastery: number;
+  status: SkillStatus;
+  [key: string]: unknown;
 }
 
 /** Response of GET /api/academy/dashboard/{userId}. */
@@ -117,7 +165,8 @@ export interface DashboardData {
   streak: number;
   xp: number;
   recommendation?: Recommendation;
-  skills?: SkillNode[];
+  /** The learner's skill tree, rendered as the dashboard's main column. */
+  skill_tree?: SkillNode[];
   [key: string]: unknown;
 }
 

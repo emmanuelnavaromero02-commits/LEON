@@ -9,6 +9,8 @@ import type {
   CreateSecretPayload,
   DashboardData,
   DiagnosticAnswer,
+  DiagnosticResult,
+  DiagnosticStartResponse,
   ExamStartResponse,
   ImportPackResponse,
   KnowledgeDocument,
@@ -83,9 +85,9 @@ export const academyApi = {
   submitLesson: (userId: string, data: LessonSubmission) =>
     api.post<PracticeResult>(`/api/academy/lesson/submit/${userId}`, data),
   startDiagnostic: (userId: string) =>
-    api.post<ExamStartResponse>(`/api/academy/diagnostic/start/${userId}`),
+    api.post<DiagnosticStartResponse>(`/api/academy/diagnostic/start/${userId}`),
   submitDiagnostic: (userId: string, answers: DiagnosticAnswer[]) =>
-    api.post<PracticeResult>(`/api/academy/diagnostic/submit/${userId}`, answers),
+    api.post<DiagnosticResult>(`/api/academy/diagnostic/submit/${userId}`, answers),
   getNextPractice: (userId: string) =>
     api.get<NextPracticeResponse>(`/api/academy/practice/next/${userId}`),
   submitPractice: (userId: string, data: PracticeSubmission) =>

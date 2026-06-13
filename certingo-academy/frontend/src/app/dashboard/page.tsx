@@ -1,43 +1,56 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   LayoutDashboard, BookOpen, GraduationCap, Trophy,
   Settings, Zap, Sparkles, ChevronRight, Lock,
-  CheckCircle, Target, AlertCircle, History, Notebook, LogOut
+  CheckCircle, Target, AlertCircle, Notebook, LogOut, Map
 } from 'lucide-react';
 import { academyApi } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
-import type { DashboardData } from '@/types/api';
+import { useToast } from '@/context/ToastContext';
+import { getErrorMessage } from '@/lib/errors';
+import { LoadingScreen } from '@/components/LoadingScreen';
+import { ErrorScreen, EmptyState } from '@/components/StateScreens';
+import type { DashboardData, SkillNode } from '@/types/api';
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const toast = useToast();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchDashboard = useCallback(async () => {
     const id = localStorage.getItem('certingo_user_id');
     if (!id) { router.push('/login'); return; }
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await academyApi.getDashboard(id);
+      setData(res.data);
+    } catch (err) {
+      const message = getErrorMessage(err, 'Failed to load your dashboard.');
+      setError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [router, toast]);
 
-    const fetchDashboard = async () => {
-      try {
-        const res = await academyApi.getDashboard(id);
-        setData(res.data);
-      } catch (err) { console.error(err); }
-      finally { setLoading(false); }
-    };
+  useEffect(() => {
     fetchDashboard();
-  }, []);
+  }, [fetchDashboard]);
 
-  if (loading || !data) return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-       <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
-    </div>
-  );
+  if (loading) return <LoadingScreen label="Loading your dashboard" />;
+  if (error && !data) return <ErrorScreen message={error} onRetry={fetchDashboard} />;
+  if (!data) return <ErrorScreen message="No dashboard data available." onRetry={fetchDashboard} />;
+
+  const skillTree: SkillNode[] = data.skill_tree ?? [];
 
   return (
     <div className="min-h-screen bg-[#050505] text-white flex">
@@ -140,36 +153,91 @@ export default function DashboardPage() {
                         </div>
                         <div className="text-right">
                            <p className="text-3xl font-black text-indigo-400">{Math.round(data.progress * 100)}%</p>
-                           <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Global Rank: #42</p>
+                           <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Mastery</p>
                         </div>
                      </div>
 
-                     <div className="space-y-3">
-                        {/* Placeholder for Skill Tree nodes - in real app would be dynamic */}
-                        {[
-                          { name: 'Cloud Concepts', score: 0.95, status: 'completed' },
-                          { name: 'Shared Responsibility', score: 0.42, status: 'current' },
-                          { name: 'Identity & Access (IAM)', score: 0, status: 'locked' },
-                          { name: 'VPC & Networking', score: 0, status: 'locked' },
-                        ].map((skill, i) => (
-                          <div key={i} className={`p-6 rounded-2xl border transition-all flex items-center group ${skill.status === 'locked' ? 'opacity-30 border-white/5' : 'bg-white/5 border-white/5 hover:border-white/10'}`}>
-                             <div className={`w-12 h-12 rounded-xl flex items-center justify-center mr-5 ${skill.status === 'completed' ? 'bg-green-500/10 text-green-500' : skill.status === 'current' ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20' : 'bg-white/5 text-white/20'}`}>
-                                {skill.status === 'completed' ? <CheckCircle className="w-6 h-6" /> : skill.status === 'locked' ? <Lock className="w-5 h-5" /> : <Zap className="w-6 h-6" />}
-                             </div>
-                             <div className="flex-1">
-                                <h3 className="font-bold mb-1">{skill.name}</h3>
-                                <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                                   <motion.div initial={{width:0}} animate={{width: `${skill.score*100}%`}} className="h-full bg-indigo-500" />
-                                </div>
-                             </div>
-                             {skill.status !== 'locked' && (
-                               <button className="ml-6 p-3 rounded-xl bg-white/5 text-white/20 group-hover:bg-white group-hover:text-black transition-all">
-                                  <ChevronRight className="w-5 h-5" />
-                               </button>
-                             )}
-                          </div>
-                        ))}
-                     </div>
+                     {skillTree.length === 0 ? (
+                        <EmptyState
+                           title="Your skill tree is being built"
+                           description="Complete the diagnostic so we can map out your personalized path across the exam domains."
+                           icon={<Map className="w-8 h-8 text-indigo-400" />}
+                           action={
+                              <button
+                                 onClick={() => router.push('/diagnostic')}
+                                 className="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-white text-black hover:bg-gray-200 transition-colors"
+                              >
+                                 Start Diagnostic
+                              </button>
+                           }
+                        />
+                     ) : (
+                        <div className="space-y-3">
+                           {skillTree.map((skill) => {
+                              const locked = skill.status === 'locked';
+                              const mastered = skill.status === 'mastered';
+                              const masteryPct = Math.round((skill.mastery ?? 0) * 100);
+                              return (
+                                 <div
+                                    key={skill.skill_id}
+                                    className={`p-6 rounded-2xl border transition-all flex items-center group ${
+                                       locked ? 'opacity-40 border-white/5' : 'bg-white/5 border-white/5 hover:border-white/10'
+                                    }`}
+                                 >
+                                    <div
+                                       className={`w-12 h-12 rounded-xl flex items-center justify-center mr-5 shrink-0 ${
+                                          mastered
+                                             ? 'bg-green-500/10 text-green-500'
+                                             : locked
+                                             ? 'bg-white/5 text-white/20'
+                                             : 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+                                       }`}
+                                    >
+                                       {mastered ? (
+                                          <CheckCircle className="w-6 h-6" />
+                                       ) : locked ? (
+                                          <Lock className="w-5 h-5" />
+                                       ) : (
+                                          <Zap className="w-6 h-6" />
+                                       )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                       <div className="flex items-center justify-between mb-1.5">
+                                          <h3 className="font-bold truncate">{skill.name}</h3>
+                                          <span
+                                             className={`text-[10px] font-black uppercase tracking-widest ml-3 shrink-0 ${
+                                                mastered
+                                                   ? 'text-green-500'
+                                                   : locked
+                                                   ? 'text-white/20'
+                                                   : 'text-indigo-400'
+                                             }`}
+                                          >
+                                             {mastered ? 'Mastered' : locked ? 'Locked' : `${masteryPct}%`}
+                                          </span>
+                                       </div>
+                                       <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                          <motion.div
+                                             initial={{ width: 0 }}
+                                             animate={{ width: `${masteryPct}%` }}
+                                             className={`h-full ${mastered ? 'bg-green-500' : 'bg-indigo-500'}`}
+                                          />
+                                       </div>
+                                    </div>
+                                    {!locked && (
+                                       <button
+                                          onClick={() => router.push('/learn')}
+                                          aria-label={`Open ${skill.name}`}
+                                          className="ml-6 p-3 rounded-xl bg-white/5 text-white/20 group-hover:bg-white group-hover:text-black transition-all shrink-0"
+                                       >
+                                          <ChevronRight className="w-5 h-5" />
+                                       </button>
+                                    )}
+                                 </div>
+                              );
+                           })}
+                        </div>
+                     )}
                   </section>
                </div>
 
@@ -180,12 +248,15 @@ export default function DashboardPage() {
                         <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mb-6">
                            <Sparkles className="w-6 h-6 text-white" />
                         </div>
-                        <h2 className="text-xl font-bold mb-2">Next Best Action</h2>
+                        <h2 className="text-xl font-bold mb-2">
+                           {data.recommendation?.title ?? 'Next Best Action'}
+                        </h2>
                         <p className="text-indigo-100 text-sm mb-8 leading-relaxed">
-                           You're struggling with "Shared Responsibility". Let's do a quick 5-min recap with business analogies.
+                           {data.recommendation?.message ??
+                              'Continue your personalized path with the next recommended lesson.'}
                         </p>
                         <button onClick={() => router.push('/learn')} className="w-full bg-white text-indigo-600 py-4 rounded-2xl font-black text-sm uppercase tracking-widest hover:scale-[1.02] transition-all active:scale-[0.98]">
-                           Start Lesson
+                           {data.recommendation?.action ?? 'Start Lesson'}
                         </button>
                      </div>
                   </section>
@@ -193,14 +264,16 @@ export default function DashboardPage() {
                   <section className="bg-white/5 border border-white/5 p-8 rounded-[2.5rem]">
                      <div className="flex items-center space-x-3 mb-6">
                         <AlertCircle className="w-5 h-5 text-orange-400" />
-                        <h2 className="font-bold text-sm uppercase tracking-widest text-white/40">Critical Mistakes</h2>
+                        <h2 className="font-bold text-sm uppercase tracking-widest text-white/40">Mistakes Notebook</h2>
                      </div>
                      <div className="space-y-4">
-                        <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
-                           <p className="text-xs font-bold mb-1">Responsibility of Data</p>
-                           <p className="text-[10px] text-white/30 leading-relaxed italic">Failed 3 times in last 24h</p>
-                        </div>
-                        <button className="w-full py-3 text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors">
+                        <p className="text-sm text-white/40 leading-relaxed">
+                           Concepts you've struggled with are collected here. Review them to lift your readiness score.
+                        </p>
+                        <button
+                           onClick={() => router.push('/review')}
+                           className="w-full py-3 text-[10px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors"
+                        >
                            Open Notebook
                         </button>
                      </div>
