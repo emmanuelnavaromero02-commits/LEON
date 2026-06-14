@@ -11,7 +11,9 @@ import type {
   DiagnosticAnswer,
   DiagnosticResult,
   DiagnosticStartResponse,
+  ExamResult,
   ExamStartResponse,
+  ExamSubmission,
   ImportPackResponse,
   KnowledgeDocument,
   Lesson,
@@ -94,6 +96,8 @@ export const academyApi = {
     api.post<PracticeResult>(`/api/academy/practice/submit/${userId}`, data),
   startExam: (userId: string) =>
     api.post<ExamStartResponse>(`/api/academy/exam/start/${userId}`),
+  submitExam: (userId: string, payload: ExamSubmission) =>
+    api.post<ExamResult>(`/api/academy/exam/submit/${userId}`, payload),
 
   // Student Stats & Readiness
   getReadiness: (userId: string) =>

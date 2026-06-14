@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from ...database import models
 from ...database.db import get_db
+from ...schemas.pack import PackValidationError
 from ...services.audit.audit_service import AuditService
 from ...services.marketplace.pack_service import PackImportService
 from ..deps import require_role
@@ -37,5 +38,13 @@ async def import_pack(
     if not os.path.exists(pack_path):
         raise HTTPException(status_code=404, detail=f"Pack path {pack_path} not found")
 
-    await service.import_pack(current_user.tenant_id, pack_path, current_user.id)
+    try:
+        await service.import_pack(current_user.tenant_id, pack_path, current_user.id)
+    except PackValidationError as exc:
+        # A malformed pack is a client error, not a server fault: surface the
+        # readable list of problems so the caller can fix the content.
+        raise HTTPException(
+            status_code=422,
+            detail={"message": "Pack validation failed", "errors": exc.errors},
+        ) from exc
     return {"status": "success"}

@@ -374,3 +374,162 @@ def test_skill_tree_is_tenant_isolated(client, users, db):
     # No tenant-2 mastery leaks in.
     for node in tree:
         assert node["domain_id"] == f"dom-{student1.tenant_id}"
+
+
+# --------------------------------------------------------------------------- #
+# 5) Admin import endpoint — invalid pack -> 422 with errors (was 500)
+# --------------------------------------------------------------------------- #
+#
+# The endpoint resolves packs from ``../content/packs/<pack_id>`` relative to the
+# backend cwd (where pytest runs). To exercise the real HTTP path we drop a
+# temporary pack directory there and clean it up afterwards.
+
+PACKS_DIR = os.path.join(REPO_ROOT, "content", "packs")
+
+
+def _write_endpoint_pack(pack_id, *, questions):
+    """Write a pack named ``pack_id`` under content/packs and return its path."""
+    pack_dir = os.path.join(PACKS_DIR, pack_id)
+    os.makedirs(pack_dir, exist_ok=True)
+
+    def dump(name, data):
+        with open(os.path.join(pack_dir, name), "w") as f:
+            yaml.safe_dump(data, f)
+
+    dump("pack.yml", {
+        "id": pack_id, "name": "Endpoint Pack", "provider": "AWS",
+        "version": "1.0", "certification_id": f"{pack_id}-cert",
+    })
+    dump("certification.yml", {
+        "id": f"{pack_id}-cert", "name": "Endpoint Cert", "provider": "AWS",
+        "version": "1.0", "description": "desc",
+    })
+    dump("domains.yml", [{"id": f"{pack_id}-d1", "name": "Domain 1", "weight": 100}])
+    dump("skills.yml", [{
+        "id": f"{pack_id}-s1", "domain_id": f"{pack_id}-d1",
+        "name": "Skill 1", "level": "beginner",
+    }])
+    dump("questions.yml", questions)
+    return pack_dir
+
+
+def _valid_endpoint_questions(pack_id):
+    return [{
+        "skill_id": f"{pack_id}-s1",
+        "prompt": "What is 2+2?",
+        "options": ["3", "4", "5", "6"],
+        "correct_answer": "4",
+        "difficulty": "easy",
+        "explanation": "Basic arithmetic.",
+        "status": "published",
+    }]
+
+
+@pytest.fixture()
+def endpoint_pack():
+    """Create a temporary pack under content/packs and remove it afterwards."""
+    import shutil
+
+    created = []
+
+    def _make(pack_id, *, questions):
+        path = _write_endpoint_pack(pack_id, questions=questions)
+        created.append(path)
+        return pack_id
+
+    yield _make
+
+    for path in created:
+        shutil.rmtree(path, ignore_errors=True)
+
+
+def test_import_endpoint_invalid_pack_returns_422_with_errors(client, users, endpoint_pack):
+    """A pack whose correct_answer is outside its options -> 422 (not 500)."""
+    admin = users["admin1"]
+    pack_id = endpoint_pack(
+        "test-invalid-pack",
+        questions=[{
+            "skill_id": "test-invalid-pack-s1",
+            "prompt": "Bad question",
+            "options": ["A", "B"],
+            "correct_answer": "Z",  # not one of the options
+            "difficulty": "easy",
+        }],
+    )
+
+    resp = client.post(
+        "/api/admin/marketplace/packs/import",
+        json={"pack_id": pack_id},
+        headers=auth_headers(admin),
+    )
+    assert resp.status_code == 422
+    detail = resp.json()["detail"]
+    assert "errors" in detail
+    assert isinstance(detail["errors"], list)
+    assert detail["errors"]
+    assert any("correct_answer" in e for e in detail["errors"])
+
+
+def test_import_endpoint_invalid_pack_does_not_write(client, users, db, endpoint_pack):
+    admin = users["admin1"]
+    pack_id = endpoint_pack(
+        "test-invalid-pack-nowrite",
+        questions=[{
+            "skill_id": "test-invalid-pack-nowrite-s1",
+            "prompt": "Bad question",
+            "options": ["A", "B"],
+            "correct_answer": "nope",
+            "difficulty": "easy",
+        }],
+    )
+
+    resp = client.post(
+        "/api/admin/marketplace/packs/import",
+        json={"pack_id": pack_id},
+        headers=auth_headers(admin),
+    )
+    assert resp.status_code == 422
+    # Fail-fast: nothing from this pack was persisted.
+    db.expire_all()
+    assert db.query(models.Skill).filter(
+        models.Skill.id == f"{pack_id}-s1"
+    ).count() == 0
+    assert db.query(models.Certification).filter(
+        models.Certification.id == f"{pack_id}-cert"
+    ).count() == 0
+
+
+def test_import_endpoint_valid_pack_returns_200(client, users, db, endpoint_pack):
+    admin = users["admin1"]
+    pack_id = endpoint_pack(
+        "test-valid-pack",
+        questions=_valid_endpoint_questions("test-valid-pack"),
+    )
+
+    resp = client.post(
+        "/api/admin/marketplace/packs/import",
+        json={"pack_id": pack_id},
+        headers=auth_headers(admin),
+    )
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "success"
+
+    db.expire_all()
+    assert db.query(models.Question).filter(
+        models.Question.tenant_id == admin.tenant_id,
+        models.Question.skill_id == f"{pack_id}-s1",
+    ).count() == 1
+
+
+def test_import_endpoint_requires_admin(client, users, endpoint_pack):
+    student = users["student1"]
+    pack_id = endpoint_pack(
+        "test-valid-pack-forbidden",
+        questions=_valid_endpoint_questions("test-valid-pack-forbidden"),
+    )
+    resp = client.post(
+        "/api/admin/marketplace/packs/import",
+        json={"pack_id": pack_id},
+        headers=auth_headers(student),
+    )
+    assert resp.status_code == 403
