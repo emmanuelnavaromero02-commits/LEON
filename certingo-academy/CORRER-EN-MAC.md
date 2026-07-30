@@ -24,17 +24,34 @@ Para detener todo: pulsa `Ctrl + C` en el terminal.
 
 ## Qué necesitas instalado
 
-El script te avisa si falta algo. Para instalarlo:
+- **Python entre 3.10 y 3.13** — no 3.14, mira la nota de abajo
+- **Node.js 18.18 o superior** (probado con Node 22)
+
+El script comprueba ambas cosas antes de instalar nada y te dice qué falta.
 
 ```bash
 # Si no tienes Homebrew:
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-brew install python@3.11 node
+brew install python@3.12 node
 ```
 
-- **Python 3.10 o superior**
-- **Node.js 18 o superior** (probado con Node 22)
+### Por qué Python 3.14 no sirve (todavía)
+
+Las versiones que fija `backend/requirements.txt` —`psycopg2-binary`, `pydantic`,
+`cryptography`— solo publican paquetes precompilados hasta Python 3.13. Con 3.14
+pip intenta compilarlos desde el código fuente y falla pidiendo `pg_config` (el
+ejecutable de PostgreSQL) y el compilador de Rust.
+
+**No hace falta desinstalar tu Python 3.14.** Instala uno compatible junto a él y
+el script lo detecta y lo usa solo para esta app:
+
+```bash
+brew install python@3.12
+```
+
+El script busca `python3.13`, `python3.12`, `python3.11` y `python3.10` en ese
+orden, y solo cae en `python3` si su versión está dentro del rango.
 
 La primera vez el script tarda unos minutos instalando dependencias. Las
 siguientes veces arranca en segundos.
@@ -70,10 +87,31 @@ lsof -ti tcp:3000 | xargs kill
 lsof -ti tcp:8000 | xargs kill
 ```
 
-O usa otros puertos:
+O usa otros puertos (el script ajusta el CORS del backend solo):
 
 ```bash
 FRONTEND_PORT=3001 BACKEND_PORT=8001 ./start-mac.sh
+```
+
+**«pg_config executable not found» al instalar**
+
+Tu `python3` es 3.14 y pip está intentando compilar `psycopg2` desde el código
+fuente. Instala una versión compatible y vuelve a lanzar el script; él la
+detecta y recrea el entorno solo:
+
+```bash
+brew install python@3.12
+./start-mac.sh
+```
+
+**La instalación falló a medias y ahora no arranca**
+
+El script detecta un entorno virtual incompleto y lo rehace por su cuenta. Si
+quieres forzarlo:
+
+```bash
+rm -rf backend/.venv
+./start-mac.sh
 ```
 
 **«permission denied: ./start-mac.sh»**
