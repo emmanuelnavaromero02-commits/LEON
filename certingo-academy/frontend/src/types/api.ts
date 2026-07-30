@@ -60,7 +60,7 @@ export interface NextPracticeResponse {
   [key: string]: unknown;
 }
 
-/** Response of GET /api/academy/lesson/next/{userId}. */
+/** A generated lesson, as returned by GET /api/academy/lesson/next/{userId}. */
 export interface Lesson {
   skill_id: string;
   title: string;
@@ -71,6 +71,30 @@ export interface Lesson {
   exam_tip?: string;
   question: PracticeQuestion;
   [key: string]: unknown;
+}
+
+/**
+ * Marker returned (with HTTP 200) when the knowledge base holds too little
+ * verified content to generate for a skill. See `AIService.generate_lesson`.
+ */
+export interface InsufficientContext {
+  status: 'insufficient_context';
+  message?: string;
+  skill_id?: string;
+  [key: string]: unknown;
+}
+
+/**
+ * Response of GET /api/academy/lesson/next/{userId}: either a lesson or the
+ * `insufficient_context` marker. Narrow with {@link isInsufficientContext}
+ * before touching lesson fields.
+ */
+export type NextLessonResponse = Lesson | InsufficientContext;
+
+export function isInsufficientContext(
+  res: NextLessonResponse | null | undefined
+): res is InsufficientContext {
+  return !!res && (res as InsufficientContext).status === 'insufficient_context';
 }
 
 /** Body of POST /api/academy/lesson/submit/{userId}. */

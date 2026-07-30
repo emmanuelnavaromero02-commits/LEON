@@ -16,12 +16,12 @@ import type {
   ExamSubmission,
   ImportPackResponse,
   KnowledgeDocument,
-  Lesson,
   LessonSubmission,
   MarketplacePack,
   MCPServer,
   MCPTool,
   Mission,
+  NextLessonResponse,
   NextPracticeResponse,
   NotebookEntry,
   OnboardingResponse,
@@ -83,7 +83,7 @@ export const academyApi = {
   getDashboard: (userId: string) =>
     api.get<DashboardData>(`/api/academy/dashboard/${userId}`),
   getNextLesson: (userId: string) =>
-    api.get<Lesson>(`/api/academy/lesson/next/${userId}`),
+    api.get<NextLessonResponse>(`/api/academy/lesson/next/${userId}`),
   submitLesson: (userId: string, data: LessonSubmission) =>
     api.post<PracticeResult>(`/api/academy/lesson/submit/${userId}`, data),
   startDiagnostic: (userId: string) =>

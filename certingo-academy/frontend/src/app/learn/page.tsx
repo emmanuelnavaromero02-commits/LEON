@@ -8,13 +8,14 @@ import { academyApi } from '@/lib/api';
 import { useToast } from '@/context/ToastContext';
 import { getErrorMessage } from '@/lib/errors';
 import { LoadingScreen } from '@/components/LoadingScreen';
-import { ErrorScreen } from '@/components/StateScreens';
-import type { Lesson } from '@/types/api';
+import { EmptyState, ErrorScreen } from '@/components/StateScreens';
+import { isInsufficientContext } from '@/types/api';
+import type { NextLessonResponse } from '@/types/api';
 
 export default function LearnPage() {
   const router = useRouter();
   const toast = useToast();
-  const [lesson, setLesson] = useState<Lesson | null>(null);
+  const [lesson, setLesson] = useState<NextLessonResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
@@ -43,7 +44,7 @@ export default function LearnPage() {
   }, [fetchLesson]);
 
   const handleSubmit = async () => {
-    if (!selectedOption || !lesson) return;
+    if (!selectedOption || !lesson || isInsufficientContext(lesson)) return;
     const correct = selectedOption === lesson.question.correct_answer;
     setIsCorrect(correct);
     setIsSubmitted(true);
@@ -66,6 +67,46 @@ export default function LearnPage() {
   if (loading) return <LoadingScreen label="Loading your lesson" />;
   if (error && !lesson) return <ErrorScreen message={error} onRetry={fetchLesson} />;
   if (!lesson) return <ErrorScreen message="No lesson available right now." onRetry={fetchLesson} />;
+
+  // The generator returns this marker (with HTTP 200) when the knowledge base
+  // has too little verified content for the skill. It carries no lesson body,
+  // so render the reason instead of the lesson layout.
+  if (isInsufficientContext(lesson)) {
+    return (
+      <div className="min-h-screen bg-[#050505] text-white flex flex-col">
+        <header className="flex items-center justify-between px-8 py-6 border-b border-white/5">
+          <button
+            type="button"
+            onClick={() => router.push('/dashboard')}
+            className="p-2 hover:bg-white/5 rounded-full transition-colors"
+            aria-label="Back to dashboard"
+          >
+            <X className="w-6 h-6 text-white/40" />
+          </button>
+          <div className="w-10" />
+        </header>
+        <main className="flex-1 flex items-center justify-center">
+          <EmptyState
+            title="This lesson isn't ready yet"
+            description={
+              lesson.message ??
+              'The knowledge base needs more verified content before a lesson can be generated for this skill.'
+            }
+            icon={<BrainCircuit className="w-8 h-8 text-white/20" />}
+            action={
+              <button
+                type="button"
+                onClick={() => router.push('/practice')}
+                className="px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-white text-black hover:bg-gray-200 transition-colors"
+              >
+                Practice instead
+              </button>
+            }
+          />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#050505] text-white flex flex-col">
